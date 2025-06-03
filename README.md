@@ -3,7 +3,7 @@
 ![alt text](image.png)
 
 ## Overview
-The One Piece world is amazing. But it's also huge : with over 1500 characters, it can quickly become overwhelming. With this project, I want to make sense of this vast universe : I will explore the relationships between all One Piece characters by looking at shared crews, organizations, or alliances. By building a network where each character is a node and connections represent common affiliations, the objective is to gain insights into hidden patterns and natural groupings, to better understand and visualize the One Piece world.
+The One Piece world is amazing. But it's also huge : with over 1500 characters, it can become overwhelming. This project builds a character network based on shared crews, organizations, or even alliances to find patterns and make the world easier to understand, helping fans to better visualize the One Piece world.
 
 
 ## Getting Started
@@ -32,6 +32,6 @@ Calculate centrality metrics and run a node-embedding algorithm.
 3. **Visualization**  
 
 4. **Clustering**  
-Merge network embeddings with other features, run clustering algorithms, and analyze the results
+Run clustering algorithms, and analyze the results
 
 
