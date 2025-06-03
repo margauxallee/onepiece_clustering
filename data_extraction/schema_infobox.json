@@ -1,0 +1,123 @@
+{
+  "name": "OnePieceCharacterInfobox",
+  "baseSelector": "aside.portable-infobox",
+  "baseField": "Name",
+  "fields": [
+    {
+      "name": "Name",
+      "type": "string",
+      "selector": "h2[data-source='name']",
+      "description": "Full character name as displayed in the infobox title."
+    },
+    {
+      "name": "OfficialEnglishName",
+      "type": "string",
+      "selector": "[data-source='ename'] .pi-data-value",
+      "description": "Official English translation of the character name."
+    },
+    {
+      "name": "Debut",
+      "type": "object",
+      "selector": "[data-source='first'] .pi-data-value",
+      "description": "Debut information in manga and anime.",
+      "fields": [
+        { "name": "manga", "type": "string" },
+        { "name": "anime", "type": "string" }
+      ]
+    },
+    {
+      "name": "Affiliations",
+      "type": "array",
+      "selector": "[data-source='affiliation'] .pi-data-value a",
+      "description": "Groups, crews, or families the character is or was affiliated with.",
+      "items": { "type": "string" }
+    },
+    {
+      "name": "Occupations",
+      "type": "array",
+      "selector": "[data-source='occupation'] .pi-data-value a",
+      "description": "Character's roles or jobs.",
+      "items": { "type": "string" }
+    },
+    {
+      "name": "Origin",
+      "type": "string",
+      "selector": "[data-source='origin'] .pi-data-value",
+      "description": "Character's place of origin."
+    },
+    {
+      "name": "Residence",
+      "type": "array",
+      "selector": "[data-source='residence'] .pi-data-value a",
+      "description": "Places where the character has lived.",
+      "items": { "type": "string" }
+    },
+    {
+      "name": "Alias",
+      "type": "string",
+      "selector": "[data-source='alias'] .pi-data-value",
+      "description": "Nicknames or aliases."
+    },
+    {
+      "name": "Status",
+      "type": "string",
+      "selector": "[data-source='status'] .pi-data-value",
+      "description": "Alive, deceased, or unknown."
+    },
+    {
+      "name": "Age",
+      "type": "array",
+      "selector": "[data-source='age'] .pi-data-value",
+      "description": "Age at various points in the story.",
+      "items": { "type": "string" }
+    },
+    {
+      "name": "Birthday",
+      "type": "string",
+      "selector": "[data-source='birth'] .pi-data-value",
+      "description": "Date of birth."
+    },
+    {
+      "name": "Height",
+      "type": "array",
+      "selector": "[data-source='height'] .pi-data-value",
+      "description": "Character's height at different times.",
+      "items": { "type": "string" }
+    },
+    {
+      "name": "BloodType",
+      "type": "string",
+      "selector": "[data-source='blood type'] .pi-data-value",
+      "description": "Character's blood type."
+    },
+    {
+      "name": "Bounties",
+      "type": "array",
+      "selector": "[data-source='bounty'] .pi-data-value",
+      "description": "Bounty amounts across the series, in chronological order.",
+      "items": { "type": "string" }
+    },
+    {
+      "name": "DevilFruit",
+      "type": "object",
+      "description": "Information about the character's Devil Fruit.",
+      "fields": [
+        {
+          "name": "JapaneseName",
+          "type": "string",
+          "selector": "[data-source='dfname'] .pi-data-value"
+        },
+        {
+          "name": "EnglishName",
+          "type": "string",
+          "selector": "[data-source='dfename'] .pi-data-value"
+        },
+        {
+          "name": "Type",
+          "type": "string",
+          "selector": "[data-source='dftype'] .pi-data-value"
+        }
+      ]
+    }
+  ]
+}

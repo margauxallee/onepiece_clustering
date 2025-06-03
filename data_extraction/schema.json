@@ -1,0 +1,16 @@
+{
+  "name": "SampleRow",
+  "baseSelector": "tr",
+  "fields": [
+    {
+      "name": "link_char_url",
+      "selector": "td:nth-of-type(2) a",
+      "type": "attribute",
+      "attribute": "href"
+    },
+    {
+      "name": "link_char_text",
+      "selector": "td:nth-of-type(2) a",
+      "type": "text"
+    }]
+}
