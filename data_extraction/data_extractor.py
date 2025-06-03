@@ -12,11 +12,11 @@ import pandas as pd
 #  ----------- CREATING THE MAIN DATAFRAME WITH ALL THE ONE PIECE CHARACTERS INFOBOXES FROM ONE PIECE FANDOM WIKI -----------
 
 #Parameters for the crawlers
-schema_file_path = "schema.json"
+schema_file_path = "data_extraction/schema.json"
 with open(schema_file_path, "r", encoding="utf-8") as f:
     schema = json.load(f)
 
-schema_infobox_file_path = "schema_infobox.json"
+schema_infobox_file_path = "data_extraction/schema_infobox.json"
 with open(schema_infobox_file_path, "r", encoding="utf-8") as f:
     schema_infobox = json.load(f)
 
@@ -29,12 +29,12 @@ config = CrawlerRunConfig(
 )
 ib_config = CrawlerRunConfig(
     extraction_strategy=css_extraction_2,
+    stream=True,
     cache_mode=CacheMode.BYPASS
 )
 
 browser_config = BrowserConfig(
     headless=True,
-    stream=True,
     viewport_width=1280,
     viewport_height=800
 )
@@ -78,7 +78,6 @@ async def urls_extractor(
 # ============== EXTRACTING INFOBOX DATA ==============
 
 
-
 async def infobox_extractor():
     
     characters_df = await urls_extractor()
@@ -88,7 +87,7 @@ async def infobox_extractor():
     async with AsyncWebCrawler(config=browser_config) as crawler:
         results = await crawler.arun_many(characters_df["url"].tolist(), config=ib_config)
 
-        for result in results:
+        async for result in results:
             if result.success:
                 infobox = json.loads(result.extracted_content)
                 infoboxes.append(infobox)  
@@ -96,20 +95,29 @@ async def infobox_extractor():
                 print("The extraction failed.")
 
         infoboxes_df = pd.DataFrame(infoboxes)
+
+        if infoboxes_df.empty:
+            print("Aucune donnée extraite. Le DataFrame est vide.")
+            return pd.DataFrame()  # ou raise Exception, selon ton usage
+
+        if infoboxes_df.shape[1] != 22:
+            print(f"⚠️ Le DataFrame contient {infoboxes_df.shape[1]} colonnes, attendu : 22.")
+            print("Colonnes présentes :", infoboxes_df.columns.tolist())
+            return pd.DataFrame()
+        
         infoboxes_df.columns = [
                                 "name",
-                                "officialenglishname",
+                                "status",
+                                "birthday",
+                                "age",
+                                "height",
+                                "bloodtype",
                                 "debut.manga",
                                 "debut.anime",
                                 "affiliations",
                                 "occupations",
                                 "origin",
                                 "residence",
-                                "status",
-                                "age",
-                                "birthday",
-                                "height",
-                                "bloodtype",
                                 "bounties",
                                 "devilfruit.japanesename",
                                 "devilfruit.englishname",
@@ -121,5 +129,7 @@ async def infobox_extractor():
 
 if __name__ == "__main__":
     infoboxes_df = asyncio.run(infobox_extractor())
-    print(infoboxes_df.head())
-    infoboxes_df.to_csv("main_data.csv", index=False)
+    print(infoboxes_df.head(10))
+    infoboxes_df.to_csv("data_extraction/main_data.csv", index=False)
+
+

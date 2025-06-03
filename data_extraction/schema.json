@@ -1,6 +1,6 @@
 {
   "name": "SampleRow",
-  "baseSelector": "tr",
+  "baseSelector": "#mw-content-text > div > table:nth-of-type(1) > tbody > tr",
   "fields": [
     {
       "name": "link_char_url",
