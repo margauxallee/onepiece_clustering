@@ -1,47 +1,34 @@
 import json
 import asyncio
-from typing import List, Dict, Any
-from terminal_style import sprint
 from crawl4ai import (
     AsyncWebCrawler,
     CrawlerRunConfig,
     BrowserConfig,
-    CacheMode,
-    RateLimiter,
-    CrawlerMonitor,
-    DisplayMode
+    CacheMode
 )
 from crawl4ai.extraction_strategy import JsonCssExtractionStrategy
-from crawl4ai.async_dispatcher import SemaphoreDispatcher
 import pandas as pd
+from typing import List, Dict, Any
+from terminal_style import sprint
 
 #  ----------- CREATING THE MAIN DATAFRAME WITH ALL THE ONE PIECE CHARACTERS INFOBOXES FROM ONE PIECE FANDOM WIKI -----------
 
 #Parameters for the crawlers
-schema_file_path = "data_extraction/schema.json"
-with open(schema_file_path, "r", encoding="utf-8") as f:
-    schema = json.load(f)
 
 schema_infobox_file_path = "data_extraction/schema_infobox.json"
 with open(schema_infobox_file_path, "r", encoding="utf-8") as f:
     schema_infobox = json.load(f)
 
-css_extraction_1 = JsonCssExtractionStrategy(schema)
+
 css_extraction_2 = JsonCssExtractionStrategy(schema_infobox)
 
-config = CrawlerRunConfig(
-    extraction_strategy=css_extraction_1,
-    cache_mode=CacheMode.BYPASS    
-)
+
 ib_config = CrawlerRunConfig(
     extraction_strategy=css_extraction_2,
-    cache_mode=CacheMode.BYPASS,
-    js_code="await new Promise(resolve => setTimeout(resolve, 3000));",
-    wait_for="css:aside.portable-infobox",
-    semaphore_count =3,
-    remove_overlay_elements=True, 
-    page_timeout=60000
+    cache_mode=CacheMode.BYPASS
 )
+
+from crawl4ai import BrowserConfig
 
 browser_config = BrowserConfig(
     headless=True,
@@ -54,62 +41,28 @@ browser_config = BrowserConfig(
 
 
 
-dispatcher = SemaphoreDispatcher(
-    max_session_permit= 5,         # Maximum concurrent tasks
-    rate_limiter=RateLimiter(      # Optional rate limiting
-        base_delay=(0.5, 1.0),
-        max_delay=10.0
-    ))
-# ======================== EXTRACTING CHARACTER URLS AND NAMES ==========================
-# Extracted using the crawl4ai library (LLM free strategy)
-
-async def urls_extractor(
-    url: str = "https://onepiece.fandom.com/wiki/List_of_Canon_Characters"
-) -> pd.DataFrame:
-    """
-    Asynchronously extracts character names and URLs from the One Piece Fandom wiki page.
-
-    Args:
-        url (str): URL of the Fandom page listing canon characters.
-                   Defaults to the official One Piece list.
-
-    Returns:
-        pd.DataFrame: A DataFrame with two columns:
-                      - 'name': character's display name
-                      - 'url': full URL to the character's wiki page
-    """
-
-
-    async with AsyncWebCrawler(config=browser_config) as crawler:
-        result = await crawler.arun(url, config=config)
-
-        print(f"Status: {result.success}")
-        if result.success:
-            data = json.loads(result.extracted_content)
-            characters_df = pd.DataFrame(data)
-            characters_df.columns = ["url", "name"]
-
-            # Add the base URL to the character URLs
-            characters_df["url"] = "https://onepiece.fandom.com" + characters_df["url"]
-        else:
-            print("The extraction failed.")
-
-        return characters_df
-
-
 # ============== EXTRACTING INFOBOX DATA ==============
 
 
-async def infobox_extractor():
-    
-    characters_df = await urls_extractor()
+async def infobox_extractor() -> pd.DataFrame:
+    """
+    Extract infoboxes from multiple URLs and return a DataFrame where each row
+    corresponds to one infobox (one page) and each column corresponds to a key
+    encountered in those infoboxes. Specified columns are filtered out before
+    DataFrame creation for performance.
+    """
 
     infoboxes_raw: List[List[Dict[str, Any]]] = []
 
-    # Fetch infoboxes (list of dicts) for each character page
-
+    # 1) Fetch infoboxes (list of dicts) for each character page
     async with AsyncWebCrawler(config=browser_config) as crawler:
-        results = await crawler.arun_many(characters_df["url"].tolist(), config=ib_config, dispatcher=dispatcher)
+        results = await crawler.arun_many(
+            [
+                "https://onepiece.fandom.com/wiki/Bartholomew_Kuma",
+                "https://onepiece.fandom.com/wiki/Absalom"
+            ],
+            config=ib_config
+        )
 
         for result in results:
             if result.success:
@@ -119,7 +72,7 @@ async def infobox_extractor():
             else:
                 print(f"Extraction failed for {result.url}")
 
-    # Define keys to exclude before building the DataFrame
+    # 2) Define keys to exclude before building the DataFrame
     drop_keys = {
         "Japanese Name:",
         "Romanized Name:",
@@ -130,13 +83,17 @@ async def infobox_extractor():
         "Meaning:",
     }
 
-    # For each infobox, build a dict of key → value, skipping unwanted keys
+    # 3) For each infobox, build a dict of key → value, skipping unwanted keys
     records: List[Dict[str, Any]] = []
 
     for idx, infobox in enumerate(infoboxes_raw):
         record: Dict[str, Any] = {}
+        undefined_count = 0
 
         for entry in infobox:
+            # Skip any entry that is not a dict
+            if not isinstance(entry, dict):
+                continue
 
             # Retrieve key and value (or pd.NA if missing)
             key = entry.get("key", pd.NA)
@@ -146,13 +103,24 @@ async def infobox_extractor():
             if pd.isna(key):
                 continue
 
+            # Skip keys that are in the drop list
             if key in drop_keys:
                 continue
+
+            # If the same key appears multiple times, append a numeric suffix
+            if key in record:
+                suffix = 1
+                new_key = f"{key.rstrip(':')}_{suffix}:"
+                while new_key in record:
+                    suffix += 1
+                    new_key = f"{key.rstrip(':')}_{suffix}:"
+                key = new_key
 
             record[key] = value
 
         records.append(record)
 
+    # 4) Build the final DataFrame (one row per infobox)
     df_infoboxes = pd.DataFrame(records)
 
     df_infoboxes.columns = [

@@ -1,146 +1,16 @@
 {
-  "name": "OnePieceCharacterInfobox",
-  "baseSelector": "aside.portable-infobox",
-  "baseField": "Name",
+  "name": "CharacterInfoboxItem",
+  "baseSelector": ".pi-item.pi-data[data-source]",
   "fields": [
     {
-      "name": "Name",
-      "type": "string",
-      "selector": "h2[data-source='name']",
-      "description": "Full character name as displayed in the infobox title."
+      "name": "key",
+      "selector": "h3.pi-data-label",
+      "type": "text"
     },
     {
-      "name": "JapaneseName",
-      "type": "string",
-      "selector": "[data-source='jname'] .pi-data-value",
-      "description": "Character's name in Japanese."
-    },
-    {
-      "name": "RomanizedName",
-      "type": "string",
-      "selector": "[data-source='rname'] .pi-data-value",
-      "description": "Romanized Japanese name."
-    },
-    {
-      "name": "OfficialEnglishName",
-      "type": "string",
-      "selector": "[data-source='ename'] .pi-data-value",
-      "description": "Official English name."
-    },
-    {
-      "name": "Alias",
-      "type": "string",
-      "selector": "[data-source='alias'] .pi-data-value",
-      "description": "Known aliases or nicknames."
-    },
-    {
-      "name": "Epithet",
-      "type": "string",
-      "selector": "[data-source='epithet'] .pi-data-value",
-      "description": "Character's title or epithet."
-    },
-    {
-      "name": "Status",
-      "type": "string",
-      "selector": "[data-source='status'] .pi-data-value",
-      "description": "Current status: Alive, Deceased, etc."
-    },
-    {
-      "name": "Birthday",
-      "type": "string",
-      "selector": "[data-source='birth'] .pi-data-value",
-      "description": "Character's birth date."
-    },
-    {
-      "name": "Age",
-      "type": "array",
-      "selector": "[data-source='age'] .pi-data-value",
-      "description": "List of ages (at debut, pre-timeskip, post-timeskip).",
-      "items": { "type": "string" }
-    },
-    {
-      "name": "Height",
-      "type": "array",
-      "selector": "[data-source='height'] .pi-data-value",
-      "description": "List of heights (at different times).",
-      "items": { "type": "string" }
-    },
-    {
-      "name": "BloodType",
-      "type": "string",
-      "selector": "[data-source='blood type'] .pi-data-value",
-      "description": "Character's blood type."
-    },
-    {
-      "name": "Debut",
-      "type": "object",
-      "selector": "[data-source='first'] .pi-data-value",
-      "description": "Debut chapter and episode.",
-      "fields": [
-        { "name": "manga", "type": "string" },
-        { "name": "anime", "type": "string" }
-      ]
-    },
-    {
-      "name": "Affiliations",
-      "type": "array",
-      "selector": "[data-source='affiliation'] .pi-data-value a",
-      "description": "Groups, crews, or alliances.",
-      "items": { "type": "string" }
-    },
-    {
-      "name": "Occupations",
-      "type": "array",
-      "selector": "[data-source='occupation'] .pi-data-value a",
-      "description": "Occupational roles.",
-      "items": { "type": "string" }
-    },
-    {
-      "name": "Origin",
-      "type": "string",
-      "selector": "[data-source='origin'] .pi-data-value",
-      "description": "Place of origin."
-    },
-    {
-      "name": "Residence",
-      "type": "array",
-      "selector": "[data-source='residence'] .pi-data-value a",
-      "description": "Places of residence (past and present).",
-      "items": { "type": "string" }
-    },
-    {
-      "name": "Bounties",
-      "type": "array",
-      "selector": "[data-source='bounty'] .pi-data-value",
-      "description": "Historical bounties (most recent first).",
-      "items": { "type": "string" }
-    },
-    {
-      "name": "DevilFruit",
-      "type": "object",
-      "description": "Devil fruit information.",
-      "fields": [
-        {
-          "name": "JapaneseName",
-          "type": "string",
-          "selector": "[data-source='dfname'] .pi-data-value"
-        },
-        {
-          "name": "EnglishName",
-          "type": "string",
-          "selector": "[data-source='dfename'] .pi-data-value"
-        },
-        {
-          "name": "Meaning",
-          "type": "string",
-          "selector": "[data-source='dfmeaning'] .pi-data-value"
-        },
-        {
-          "name": "Type",
-          "type": "string",
-          "selector": "[data-source='dftype'] .pi-data-value"
-        }
-      ]
+      "name": "value",
+      "selector": ".pi-data-value",
+      "type": "text"
     }
   ]
 }
