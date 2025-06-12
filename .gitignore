@@ -1,4 +1,6 @@
 
-
 # Ignore the png
 *.png
+
+# ignore the lib files
+/lib/
