@@ -115,7 +115,7 @@ def main():
 
     df_cleaned.drop(columns=['character'], errors='ignore', inplace=True)
 
-    df_cleaned.to_csv("data_extraction/final_onepiece_df.csv", index=False)
+    df_cleaned.to_csv("data_extraction/df_final_onepiece.csv", index=False)
 
     sprint("Cleaning and merging processes completed.", color="green", bold=True)
 
