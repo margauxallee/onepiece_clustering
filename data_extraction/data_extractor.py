@@ -1,5 +1,6 @@
 import json
 import asyncio
+import os
 from typing import List, Dict, Any
 from terminal_style import sprint
 from crawl4ai import (
@@ -17,7 +18,55 @@ import pandas as pd
 
 #  ----------- CREATING THE MAIN DATAFRAME WITH ALL THE ONE PIECE CHARACTERS INFOBOXES FROM ONE PIECE FANDOM WIKI -----------
 
-#Parameters for the crawlers
+# ----- DATAFRAME CONFIGURATION -----
+OUTPUT_CSV = "data_extraction/main_data.csv"
+
+COLUMN_ORDER = [
+    "name",
+    "apparition",
+    "affiliations",
+    "occupations",
+    "origin",
+    "status",
+    "age",
+    "birthday",
+    "height",
+    "weight",
+    "bloodtype",
+    "english.name",
+    "devilfruit.type",
+    "residence",
+    "bounties",
+]
+
+KEY_MAP: Dict[str, str] = {
+    "Official English Name:": "name",
+    "Debut:": "apparition",
+    "Affiliations:": "affiliations",
+    "Occupations:": "occupations",
+    "Status:": "status",
+    "Birthday:": "birthday",
+    "Origin:": "origin",
+    "Age:": "age",
+    "Height:": "height",
+    "Weight:": "weight",
+    "Blood Type:": "bloodtype",
+    "English Name:": "english.name",
+    "Type:": "devilfruit.type",
+    "Residence:": "residence",
+    "Bounties:": "bounties",
+}
+drop_keys = {
+    "Japanese Name:",
+    "Romanized Name:",
+    "Alias:",
+    "Epithet:",
+    "Japanese Voice:",
+    "English Voice:",
+    "Meaning:",
+}
+
+# --- Parameters for the crawlers ---
 schema_file_path = "data_extraction/schema.json"
 with open(schema_file_path, "r", encoding="utf-8") as f:
     schema = json.load(f)
@@ -35,7 +84,6 @@ config = CrawlerRunConfig(
 )
 ib_config = CrawlerRunConfig(
     extraction_strategy=css_extraction_2,
-    cache_mode=CacheMode.BYPASS,
     js_code="await new Promise(resolve => setTimeout(resolve, 3000));",
     wait_for="css:aside.portable-infobox",
     semaphore_count =3,
@@ -52,14 +100,14 @@ browser_config = BrowserConfig(
     }
 )
 
-
-
 dispatcher = SemaphoreDispatcher(
-    max_session_permit= 5,         # Maximum concurrent tasks
-    rate_limiter=RateLimiter(      # Optional rate limiting
-        base_delay=(0.5, 1.0),
-        max_delay=10.0
-    ))
+    max_session_permit=10,               #
+    rate_limiter=RateLimiter(
+        base_delay=(0.2, 0.5),          
+        max_delay=5.0
+    )
+)
+
 # ======================== EXTRACTING CHARACTER URLS AND NAMES ==========================
 # Extracted using the crawl4ai library (LLM free strategy)
 
@@ -83,7 +131,6 @@ async def urls_extractor(
     async with AsyncWebCrawler(config=browser_config) as crawler:
         result = await crawler.arun(url, config=config)
 
-        print(f"Status: {result.success}")
         if result.success:
             data = json.loads(result.extracted_content)
             characters_df = pd.DataFrame(data)
@@ -92,94 +139,79 @@ async def urls_extractor(
             # Add the base URL to the character URLs
             characters_df["url"] = "https://onepiece.fandom.com" + characters_df["url"]
         else:
-            print("The extraction failed.")
+            sprint("The extraction failed.", color="red", bold=True)
 
         return characters_df
 
 
 # ============== EXTRACTING INFOBOX DATA ==============
 
-
-async def infobox_extractor():
-    
+async def infobox_extractor(chunk_size: int = 25) -> pd.DataFrame:
+    """
+    Crawl in batches, map raw infobox keys via KEY_MAP, and
+    append each batch to a CSV (with header on first write).
+    """
+    sprint("===== Starting the extraction of character URLs and names... =====", color="cyan", bold=True)
     characters_df = await urls_extractor()
+    urls = characters_df["url"].tolist()
 
-    infoboxes_raw: List[List[Dict[str, Any]]] = []
+    # Remove existing CSV so header logic works
+    if os.path.exists(OUTPUT_CSV):
+        os.remove(OUTPUT_CSV)
 
-    # Fetch infoboxes (list of dicts) for each character page
+    sprint(" ===== Starting the extraction of infobox data... =====", color="cyan", bold=True)
 
-    async with AsyncWebCrawler(config=browser_config) as crawler:
-        results = await crawler.arun_many(characters_df["url"].tolist(), config=ib_config, dispatcher=dispatcher)
+    for batch_start in range(0, len(urls), chunk_size):
+        batch_urls = urls[batch_start : batch_start + chunk_size]
 
+        async with AsyncWebCrawler(config=browser_config) as crawler:
+            results = await crawler.arun_many(
+                batch_urls,
+                config=ib_config,
+                dispatcher=dispatcher
+            )
+
+        records: List[Dict[str, Any]] = []
         for result in results:
-            if result.success:
-                # Parse JSON content into a Python list of dicts
-                infobox = json.loads(result.extracted_content)
-                infoboxes_raw.append(infobox)
-            else:
-                print(f"Extraction failed for {result.url}")
-
-    # Define keys to exclude before building the DataFrame
-    drop_keys = {
-        "Japanese Name:",
-        "Romanized Name:",
-        "Alias:",
-        "Epithet:",
-        "Japanese Voice:",
-        "English Voice:",
-        "Meaning:",
-    }
-
-    # For each infobox, build a dict of key → value, skipping unwanted keys
-    records: List[Dict[str, Any]] = []
-
-    for idx, infobox in enumerate(infoboxes_raw):
-        record: Dict[str, Any] = {}
-
-        for entry in infobox:
-
-            # Retrieve key and value (or pd.NA if missing)
-            key = entry.get("key", pd.NA)
-            value = entry.get("value", pd.NA)
-
-            # Skip entries without a key
-            if pd.isna(key):
+            if not result.success:
+                sprint(f" Failure for {result.url}", color="red")
                 continue
 
-            if key in drop_keys:
-                continue
+            infobox = json.loads(result.extracted_content)
+            record: Dict[str, Any] = {}
 
-            record[key] = value
+            for entry in infobox:
+                raw_key = entry.get("key", pd.NA)
+                value = entry.get("value", pd.NA)
 
-        records.append(record)
+                if pd.isna(raw_key):
+                    continue
+                std_key = KEY_MAP.get(raw_key)
+                if std_key is None:
+                    continue
 
-    df_infoboxes = pd.DataFrame(records)
+                record[std_key] = value
 
-    df_infoboxes.columns = [
-                            "name",
-                            "apparition",
-                            "affiliations",
-                            "occupations",
-                            "origin",
-                            "status",
-                            "age",
-                            "birthday",
-                            "height",
-                            "weight",
-                            "bloodtype",
-                            "devilfruit.name",
-                            "devilfruit.type",
-                            "residence",
-                            "bounties",
-                            ]
+            records.append(record)
 
+        # Build the DataFrame and ensure correct columns/order
+        df_batch = pd.DataFrame(records)
+        df_batch = df_batch.reindex(columns=COLUMN_ORDER)
+
+        # Write header only for the first batch
+        write_header = not os.path.exists(OUTPUT_CSV)
+        df_batch.to_csv(OUTPUT_CSV, mode="a", index=False, header=write_header)
+
+        batch_number = (batch_start // chunk_size) + 1
+        sprint(f" Batch {batch_number} saved ({len(records)} lines)", color= "pink", bold=True)
+
+    # Load and return the full dataset
+    df_infoboxes = pd.read_csv(OUTPUT_CSV)
     return df_infoboxes
 
 
 if __name__ == "__main__":
-    df_infoboxes = asyncio.run(infobox_extractor())
-    print(df_infoboxes.head(10))
-    print(df_infoboxes.columns)
-    output_path = "data_extraction/main_data.csv"
-    df_infoboxes.to_csv(output_path, index=False)
-    sprint(f"DataFrame saved to {output_path}", color="green", bold=True)
+    final_df = asyncio.run(infobox_extractor())
+    print(final_df.head(10))
+    print(final_df.columns)
+    sprint(f"DataFrame saved to {OUTPUT_CSV}", color="green", bold=True)
