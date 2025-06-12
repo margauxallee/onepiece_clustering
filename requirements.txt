@@ -2,3 +2,5 @@ crawl4ai
 pandas
 json
 asyncio
+terminal_style
+scikit-learn

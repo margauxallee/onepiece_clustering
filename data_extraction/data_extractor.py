@@ -1,6 +1,7 @@
 import json
 import asyncio
 import os
+import pandas as pd
 from typing import List, Dict, Any
 from terminal_style import sprint
 from crawl4ai import (
@@ -8,18 +9,16 @@ from crawl4ai import (
     CrawlerRunConfig,
     BrowserConfig,
     CacheMode,
-    RateLimiter,
-    CrawlerMonitor,
-    DisplayMode
+    RateLimiter
 )
 from crawl4ai.extraction_strategy import JsonCssExtractionStrategy
 from crawl4ai.async_dispatcher import SemaphoreDispatcher
-import pandas as pd
+
 
 #  ----------- CREATING THE MAIN DATAFRAME WITH ALL THE ONE PIECE CHARACTERS INFOBOXES FROM ONE PIECE FANDOM WIKI -----------
 
 # ----- DATAFRAME CONFIGURATION -----
-OUTPUT_CSV = "data_extraction/main_data.csv"
+OUTPUT_CSV = "data_extraction/raw_crawled_data.csv"
 
 COLUMN_ORDER = [
     "name",
@@ -33,10 +32,10 @@ COLUMN_ORDER = [
     "height",
     "weight",
     "bloodtype",
-    "english.name",
+    "fruit.name",
     "devilfruit.type",
     "residence",
-    "bounties",
+    "bounty",
 ]
 
 KEY_MAP: Dict[str, str] = {
@@ -51,11 +50,12 @@ KEY_MAP: Dict[str, str] = {
     "Height:": "height",
     "Weight:": "weight",
     "Blood Type:": "bloodtype",
-    "English Name:": "english.name",
+    "English Name:": "fruit.name",
     "Type:": "devilfruit.type",
     "Residence:": "residence",
-    "Bounties:": "bounties",
+    "Bounty:": "bounty",
 }
+
 drop_keys = {
     "Japanese Name:",
     "Romanized Name:",
@@ -148,10 +148,19 @@ async def urls_extractor(
 
 async def infobox_extractor(chunk_size: int = 25) -> pd.DataFrame:
     """
-    Crawl in batches, map raw infobox keys via KEY_MAP, and
-    append each batch to a CSV (with header on first write).
+        Asynchronously extracts infoboxes, by batches, from the One Piece Fandom wiki page.
+
+        Args:
+            chunk_size (int): Number of urls in each batch. THis helps to avoid overloading the server.
+                            Defaults to 25.
+
+        Returns:
+            pd.DataFrame: A DataFrame containing the extracted infobox data with standardized column names.
+                        The columns are defined in the COLUMN_ORDER list.
     """
+     
     sprint("===== Starting the extraction of character URLs and names... =====", color="cyan", bold=True)
+
     characters_df = await urls_extractor()
     urls = characters_df["url"].tolist()
 
@@ -174,23 +183,23 @@ async def infobox_extractor(chunk_size: int = 25) -> pd.DataFrame:
         records: List[Dict[str, Any]] = []
         for result in results:
             if not result.success:
-                sprint(f" Failure for {result.url}", color="red")
+                sprint(f"Failure for {result.url}", color="red")
                 continue
 
             infobox = json.loads(result.extracted_content)
             record: Dict[str, Any] = {}
 
-            for entry in infobox:
-                raw_key = entry.get("key", pd.NA)
-                value = entry.get("value", pd.NA)
+            for info in infobox:
+                initial_key = info.get("key", pd.NA)
+                value = info.get("value", pd.NA)
 
-                if pd.isna(raw_key):
+                if pd.isna(initial_key):
                     continue
-                std_key = KEY_MAP.get(raw_key)
-                if std_key is None:
+                new_key = KEY_MAP.get(initial_key)
+                if new_key is None:
                     continue
 
-                record[std_key] = value
+                record[new_key] = value
 
             records.append(record)
 
