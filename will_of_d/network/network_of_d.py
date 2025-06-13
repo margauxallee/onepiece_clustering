@@ -66,7 +66,9 @@ color_inter = palette[1]
 color_aff = palette[2]      
 
 plt.figure(figsize=(22, 16))
-pos = nx.spring_layout(subG, seed=42, k=0.35, iterations=200)
+
+# Use Kamada-Kawai layout for better spacing of nodes
+pos = nx.kamada_kawai_layout(subG)
 
 # Categorize nodes
 key_nodes = [n for n, d in subG.nodes(data=True) if d.get("has_D") == 1.0]
@@ -82,16 +84,85 @@ nx.draw_networkx_nodes(subG, pos, nodelist=intermediate_nodes, node_color=color_
 nx.draw_networkx_nodes(subG, pos, nodelist=aff_nodes, node_color=color_aff,
                        node_size=400, edgecolors="gray", linewidths=1, label="Affiliations")
 
-nx.draw_networkx_edges(subG, pos, alpha=0.25, width=1, edge_color="gray")
+# Categorize edges
+key_to_key = [(u, v) for (u, v) in subG.edges() if u in key_nodes and v in key_nodes]
+key_to_aff = [(u, v) for (u, v) in subG.edges() if 
+              (u in key_nodes and v in aff_nodes) or (v in key_nodes and u in aff_nodes)]
+other_edges = [(u, v) for (u, v) in subG.edges() if 
+               (u, v) not in key_to_key and (u, v) not in key_to_aff]
 
+# Draw edges with different styles based on connection type
+nx.draw_networkx_edges(subG, pos, 
+                      edgelist=key_to_key,
+                      edge_color='darkred',
+                      alpha=0.4,
+                      width=2,
+                      connectionstyle="arc3,rad=0.3")
+
+nx.draw_networkx_edges(subG, pos, 
+                      edgelist=key_to_aff,
+                      edge_color='darkblue',
+                      alpha=0.3,
+                      width=1.5,
+                      connectionstyle="arc3,rad=0.2")
+
+nx.draw_networkx_edges(subG, pos, 
+                      edgelist=other_edges,
+                      edge_color='gray',
+                      alpha=0.15,
+                      width=1,
+                      connectionstyle="arc3,rad=0.1")
+
+# Add labels with improved visibility
 char_labels = {n: n for n in key_nodes + intermediate_nodes}
-nx.draw_networkx_labels(subG, pos, labels=char_labels, font_size=10, font_weight="medium")
+nx.draw_networkx_labels(subG, pos, labels=char_labels, 
+                       font_size=10, 
+                       font_weight="bold",
+                       bbox=dict(facecolor='white', 
+                               alpha=0.7, 
+                               edgecolor='none', 
+                               pad=0.5))
 
 aff_labels = {n: n for n in aff_nodes}
-nx.draw_networkx_labels(subG, pos, labels=aff_labels, font_size=6, font_color="dimgray")
+nx.draw_networkx_labels(subG, pos, labels=aff_labels, 
+                       font_size=6, 
+                       font_color="dimgray",
+                       bbox=dict(facecolor='white', 
+                               alpha=0.5, 
+                               edgecolor='none', 
+                               pad=0.3))
 
-plt.title("One Piece Network — D. Characters and their connections", fontsize=20, fontweight="bold", pad=30)
-plt.legend(loc="upper right", fontsize=11, frameon=True, fancybox=True, edgecolor="lightgray")
+plt.title("One Piece Network — D. Characters and their connections", 
+          fontsize=20, fontweight="bold", pad=30)
+
+# Create legend elements
+node_legend_elements = [
+    plt.scatter([], [], c=[color_key], s=1200, label='Key Characters', 
+               edgecolors='gray', linewidths=1.2),
+    plt.scatter([], [], c=[color_inter], s=600, label='Intermediate Characters',
+               edgecolors='gray', linewidths=1),
+    plt.scatter([], [], c=[color_aff], s=400, label='Affiliations',
+               edgecolors='gray', linewidths=1)
+]
+
+# Create custom legend for edge types
+edge_legend_elements = [
+    plt.Line2D([0], [0], color='darkred', linestyle='-', lw=2,
+               label='D. Character Connections'),
+    plt.Line2D([0], [0], color='darkblue', linestyle='-', lw=1.5,
+               label='D. Character-Affiliation'),
+    plt.Line2D([0], [0], color='gray', linestyle='-', lw=1,
+               label='Other Connections')
+]
+
+# Combine all legend elements
+plt.legend(handles=node_legend_elements + edge_legend_elements,
+          loc="upper right", 
+          fontsize=11, 
+          frameon=True, 
+          fancybox=True, 
+          edgecolor="lightgray")
+
 plt.axis("off")
 plt.tight_layout()
 plt.show()

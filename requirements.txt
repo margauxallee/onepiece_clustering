@@ -16,3 +16,5 @@ scikit-image
 netgraph
 networkx
 matplotlib
+mpld3
+pydot
