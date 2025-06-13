@@ -48,7 +48,7 @@ def extract_int(val: str) -> Optional[int]:
 
 
 def clean_text_column(series: pd.Series,
-                      split_on: str = ';',
+                      split_on: bool = False,
                       lower: bool = False,
                       replace_commas: bool = False,
                       remove_spaces: bool = False,
@@ -58,8 +58,9 @@ def clean_text_column(series: pd.Series,
     """
     cleaned_text = (series.astype(str)
               .str.replace(BRACKET_PAREN_PATTERN, '', regex=True)
-              .str.split(split_on).str[0]
               .str.strip())
+    if split_on:
+        cleaned_text = cleaned_text.str.split(';').str[0]
     if lower:
         cleaned_text = cleaned_text.str.lower()
     if replace_commas:
@@ -74,8 +75,10 @@ def clean_text_column(series: pd.Series,
 def main():
     # Load and primary clean
     df_filtered = pd.read_csv("data_extraction/raw_crawled_data.csv")
+    df_filtered['has_D'] = df_filtered['name'].str.contains(r'D\. ', na=False).astype(int)
     df_filtered['name'] = clean_text_column(df_filtered['name'])
     df_filtered['key'] = df_filtered['name'].str.replace(r'\s+', '', regex=True).str.lower()
+    df_filtered = df_filtered[df_filtered['key'].fillna('').str.strip() != '']
     df_filtered['apparition'] = df_filtered['apparition'].apply(extract_chapter)
 
     # Clean demographic columns

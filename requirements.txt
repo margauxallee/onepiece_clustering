@@ -4,3 +4,15 @@ json
 asyncio
 terminal_style
 scikit-learn
+scipy
+numpy
+
+#dataviz
+holoviews 
+datashader 
+bokeh
+dask
+scikit-image
+netgraph
+networkx
+matplotlib
