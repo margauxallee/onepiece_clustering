@@ -3,20 +3,28 @@ import networkx as nx
 import matplotlib.pyplot as plt
 from itertools import combinations
 import seaborn as sns
+import numpy as np
 
+
+"""
+This script shows how the D. characters are connected through their affiliations:
+It build a network where any two characters are joined if they share an affiliation.
+For every pair of D. characters, the program find and print the shortest chain of characters linking them.
+You can see the resulting network just by running the code, with D. characters and intermediates highlighted in different colors.
+"""
 
 # Load and clean data
-df = pd.read_csv("data_extraction/df_final_onepiece.csv")
+df_characters = pd.read_csv("data_extraction/df_final_onepiece.csv")
 
 # Drop rows with missing names or affiliations
-df = df.dropna(subset=["name", "affiliations"]).copy()
-df["name"] = df["name"].astype(str)
-df["affiliations"] = df["affiliations"].astype(str)
+df_characters = df_characters.dropna(subset=["name", "affiliations"]).copy()
+df_characters["name"] = df_characters["name"].astype(str)
+df_characters["affiliations"] = df_characters["affiliations"].astype(str)
 
 
 # Split affiliations and explode
-df["affiliations"] = df["affiliations"].str.split(";")
-df_exploded = df.explode("affiliations")
+df_characters["affiliations"] = df_characters["affiliations"].str.split(";")
+df_exploded = df_characters.explode("affiliations")
 df_exploded["affiliations"] = df_exploded["affiliations"].str.strip()
 df_exploded = df_exploded[df_exploded["affiliations"] != "clanofd."]
 
@@ -67,8 +75,13 @@ color_aff = palette[2]
 
 plt.figure(figsize=(22, 16))
 
-# Use Kamada-Kawai layout for better spacing of nodes
-pos = nx.kamada_kawai_layout(subG)
+# Use optimized spring layout for best visualization
+pos = nx.spring_layout(
+    subG,
+    k=3,           # Increase spacing between nodes
+    iterations=50, # More iterations for better convergence
+    seed=42       # For reproducible layout
+)
 
 # Categorize nodes
 key_nodes = [n for n, d in subG.nodes(data=True) if d.get("has_D") == 1.0]
