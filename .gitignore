@@ -4,3 +4,5 @@
 
 # ignore the lib files
 /lib/
+
+*.pkl

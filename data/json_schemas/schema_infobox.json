@@ -1,0 +1,16 @@
+{
+  "name": "CharacterInfoboxItem",
+  "baseSelector": ".pi-item.pi-data[data-source]",
+  "fields": [
+    {
+      "name": "key",
+      "selector": "h3.pi-data-label",
+      "type": "text"
+    },
+    {
+      "name": "value",
+      "selector": ".pi-data-value",
+      "type": "text"
+    }
+  ]
+}

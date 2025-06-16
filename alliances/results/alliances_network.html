@@ -1,0 +1,259 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        
+            <script src="lib/bindings/utils.js"></script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css" integrity="sha512-WgxfT5LWjfszlPHXRmBWHkV2eceiWTOBvrKCNbdgDYTHrT2AeLCGbF4sZlZw3UMN3WtL0tGUoIAKsu8mllg/XA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js" integrity="sha512-LnvoEWDFrqGHlHmDD2101OrLcbsfkrzoSpvtSQtxK3RMnRV0eOkhhBN2dXHKRrUU8p2DGRTk35n4O8nWSVe1mQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            
+        
+<center>
+<h1></h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+        <link
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
+          crossorigin="anonymous"
+        />
+        <script
+          src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
+          crossorigin="anonymous"
+        ></script>
+
+
+        <center>
+          <h1></h1>
+        </center>
+        <style type="text/css">
+
+             #mynetwork {
+                 width: 100%;
+                 height: 750px;
+                 background-color: #222222;
+                 border: 1px solid lightgray;
+                 position: relative;
+                 float: left;
+             }
+
+             
+             #loadingBar {
+                 position:absolute;
+                 top:0px;
+                 left:0px;
+                 width: 100%;
+                 height: 750px;
+                 background-color:rgba(200,200,200,0.8);
+                 -webkit-transition: all 0.5s ease;
+                 -moz-transition: all 0.5s ease;
+                 -ms-transition: all 0.5s ease;
+                 -o-transition: all 0.5s ease;
+                 transition: all 0.5s ease;
+                 opacity:1;
+             }
+
+             #bar {
+                 position:absolute;
+                 top:0px;
+                 left:0px;
+                 width:20px;
+                 height:20px;
+                 margin:auto auto auto auto;
+                 border-radius:11px;
+                 border:2px solid rgba(30,30,30,0.05);
+                 background: rgb(0, 173, 246); /* Old browsers */
+                 box-shadow: 2px 0px 4px rgba(0,0,0,0.4);
+             }
+
+             #border {
+                 position:absolute;
+                 top:10px;
+                 left:10px;
+                 width:500px;
+                 height:23px;
+                 margin:auto auto auto auto;
+                 box-shadow: 0px 0px 4px rgba(0,0,0,0.2);
+                 border-radius:10px;
+             }
+
+             #text {
+                 position:absolute;
+                 top:8px;
+                 left:530px;
+                 width:30px;
+                 height:50px;
+                 margin:auto auto auto auto;
+                 font-size:22px;
+                 color: #000000;
+             }
+
+             div.outerBorder {
+                 position:relative;
+                 top:400px;
+                 width:600px;
+                 height:44px;
+                 margin:auto auto auto auto;
+                 border:8px solid rgba(0,0,0,0.1);
+                 background: rgb(252,252,252); /* Old browsers */
+                 background: -moz-linear-gradient(top,  rgba(252,252,252,1) 0%, rgba(237,237,237,1) 100%); /* FF3.6+ */
+                 background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(252,252,252,1)), color-stop(100%,rgba(237,237,237,1))); /* Chrome,Safari4+ */
+                 background: -webkit-linear-gradient(top,  rgba(252,252,252,1) 0%,rgba(237,237,237,1) 100%); /* Chrome10+,Safari5.1+ */
+                 background: -o-linear-gradient(top,  rgba(252,252,252,1) 0%,rgba(237,237,237,1) 100%); /* Opera 11.10+ */
+                 background: -ms-linear-gradient(top,  rgba(252,252,252,1) 0%,rgba(237,237,237,1) 100%); /* IE10+ */
+                 background: linear-gradient(to bottom,  rgba(252,252,252,1) 0%,rgba(237,237,237,1) 100%); /* W3C */
+                 filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#fcfcfc', endColorstr='#ededed',GradientType=0 ); /* IE6-9 */
+                 border-radius:72px;
+                 box-shadow: 0px 0px 10px rgba(0,0,0,0.2);
+             }
+             
+
+             
+
+             
+        </style>
+    </head>
+
+
+    <body>
+        <div class="card" style="width: 100%">
+            
+            
+            <div id="mynetwork" class="card-body"></div>
+        </div>
+
+        
+            <div id="loadingBar">
+              <div class="outerBorder">
+                <div id="text">0%</div>
+                <div id="border">
+                  <div id="bar"></div>
+                </div>
+              </div>
+            </div>
+        
+        
+
+        <script type="text/javascript">
+
+              // initialize global variables.
+              var edges;
+              var nodes;
+              var allNodes;
+              var allEdges;
+              var nodeColors;
+              var originalNodes;
+              var network;
+              var container;
+              var options, data;
+              var filter = {
+                  item : '',
+                  property : '',
+                  value : []
+              };
+
+              
+
+              
+
+              // This method is responsible for drawing the graph, returns the drawn network
+              function drawGraph() {
+                  var container = document.getElementById('mynetwork');
+
+                  
+
+                  // parsing and collecting nodes and edges from the python
+                  nodes = new vis.DataSet([{"font": {"color": "white"}, "group": 1, "id": "ideopirates", "label": "ideopirates", "shape": "dot", "size": 3, "title": "ideopirates (4 members)"}, {"font": {"color": "white"}, "group": 1, "id": "strawhatgrandfleet", "label": "strawhatgrandfleet", "shape": "dot", "size": 32, "title": "strawhatgrandfleet (40 members)"}, {"font": {"color": "white"}, "group": 1, "id": "happonavy", "label": "happonavy", "shape": "dot", "size": 3, "title": "happonavy (4 members)"}, {"font": {"color": "white"}, "group": 1, "id": "chinjaofamily", "label": "chinjaofamily", "shape": "dot", "size": 3, "title": "chinjaofamily (4 members)"}, {"font": {"color": "white"}, "group": 1, "id": "bartoclub", "label": "bartoclub", "shape": "dot", "size": 1, "title": "bartoclub (2 members)"}, {"font": {"color": "white"}, "group": 1, "id": "tontattakingdomscoutingunit", "label": "tontattakingdomscoutingunit", "shape": "dot", "size": 2, "title": "tontattakingdomscoutingunit (3 members)"}, {"font": {"color": "white"}, "group": 1, "id": "tontattapirates", "label": "tontattapirates", "shape": "dot", "size": 6, "title": "tontattapirates (8 members)"}, {"font": {"color": "white"}, "group": 1, "id": "tontattakingdom", "label": "tontattakingdom", "shape": "dot", "size": 10, "title": "tontattakingdom (13 members)"}, {"font": {"color": "white"}, "group": 3, "id": "strawhatpirates", "label": "strawhatpirates", "shape": "dot", "size": 10, "title": "strawhatpirates (13 members)"}, {"font": {"color": "white"}, "group": 0, "id": "ninja-pirate-mink-samuraialliance", "label": "ninja-pirate-mink-samuraialliance", "shape": "dot", "size": 52, "title": "ninja-pirate-mink-samuraialliance (66 members)"}, {"font": {"color": "white"}, "group": 1, "id": "beautifulpirates", "label": "beautifulpirates", "shape": "dot", "size": 1, "title": "beautifulpirates (2 members)"}, {"font": {"color": "white"}, "group": 1, "id": "yontamariagrandfleet", "label": "yontamariagrandfleet", "shape": "dot", "size": 1, "title": "yontamariagrandfleet (2 members)"}, {"font": {"color": "white"}, "group": 1, "id": "tontacorps", "label": "tontacorps", "shape": "dot", "size": 1, "title": "tontacorps (2 members)"}, {"font": {"color": "white"}, "group": 4, "id": "newgiantwarriorpirates", "label": "newgiantwarriorpirates", "shape": "dot", "size": 4, "title": "newgiantwarriorpirates (5 members)"}, {"font": {"color": "white"}, "group": 4, "id": "buggy\u0027sdelivery", "label": "buggy\u0027sdelivery", "shape": "dot", "size": 7, "title": "buggy\u0027sdelivery (9 members)"}, {"font": {"color": "white"}, "group": 3, "id": "impeldown", "label": "impeldown", "shape": "dot", "size": 21, "title": "impeldown (27 members)"}, {"font": {"color": "white"}, "group": 1, "id": "baratie", "label": "baratie", "shape": "dot", "size": 4, "title": "baratie (5 members)"}, {"font": {"color": "white"}, "group": 1, "id": "foxypirates", "label": "foxypirates", "shape": "dot", "size": 13, "title": "foxypirates (17 members)"}, {"font": {"color": "white"}, "group": 10, "id": "shandia", "label": "shandia", "shape": "dot", "size": 13, "title": "shandia (17 members)"}, {"font": {"color": "white"}, "group": 10, "id": "wagomuland", "label": "wagomuland", "shape": "dot", "size": 2, "title": "wagomuland (3 members)"}, {"font": {"color": "white"}, "group": 10, "id": "god\u0027sguards", "label": "god\u0027sguards", "shape": "dot", "size": 3, "title": "god\u0027sguards (4 members)"}, {"font": {"color": "white"}, "group": 5, "id": "sunpirates", "label": "sunpirates", "shape": "dot", "size": 12, "title": "sunpirates (15 members)"}, {"font": {"color": "white"}, "group": 5, "id": "ryugukingdom", "label": "ryugukingdom", "shape": "dot", "size": 7, "title": "ryugukingdom (9 members)"}, {"font": {"color": "white"}, "group": 5, "id": "arlongpirates", "label": "arlongpirates", "shape": "dot", "size": 8, "title": "arlongpirates (10 members)"}, {"font": {"color": "white"}, "group": 5, "id": "macropirates", "label": "macropirates", "shape": "dot", "size": 2, "title": "macropirates (3 members)"}, {"font": {"color": "white"}, "group": 5, "id": "neptunefamily", "label": "neptunefamily", "shape": "dot", "size": 4, "title": "neptunefamily (6 members)"}, {"font": {"color": "white"}, "group": 11, "id": "fakestrawhatcrew", "label": "fakestrawhatcrew", "shape": "dot", "size": 10, "title": "fakestrawhatcrew (13 members)"}, {"font": {"color": "white"}, "group": 11, "id": "hisowncrew", "label": "hisowncrew", "shape": "dot", "size": 3, "title": "hisowncrew (4 members)"}, {"font": {"color": "white"}, "group": 11, "id": "cariboupirates", "label": "cariboupirates", "shape": "dot", "size": 2, "title": "cariboupirates (3 members)"}, {"font": {"color": "white"}, "group": 4, "id": "crossguild", "label": "crossguild", "shape": "dot", "size": 7, "title": "crossguild (9 members)"}, {"font": {"color": "white"}, "group": 4, "id": "buggyandalvidaalliance", "label": "buggyandalvidaalliance", "shape": "dot", "size": 4, "title": "buggyandalvidaalliance (6 members)"}, {"font": {"color": "white"}, "group": 4, "id": "buggypirates", "label": "buggypirates", "shape": "dot", "size": 4, "title": "buggypirates (6 members)"}, {"font": {"color": "white"}, "group": 3, "id": "sevenwarlordsofthesea", "label": "sevenwarlordsofthesea", "shape": "dot", "size": 8, "title": "sevenwarlordsofthesea (11 members)"}, {"font": {"color": "white"}, "group": 4, "id": "baroqueworks", "label": "baroqueworks", "shape": "dot", "size": 29, "title": "baroqueworks (37 members)"}, {"font": {"color": "white"}, "group": 13, "id": "kuja", "label": "kuja", "shape": "dot", "size": 17, "title": "kuja (22 members)"}, {"font": {"color": "white"}, "group": 13, "id": "kujapirates", "label": "kujapirates", "shape": "dot", "size": 7, "title": "kujapirates (9 members)"}, {"font": {"color": "white"}, "group": 3, "id": "blackbeardpirates", "label": "blackbeardpirates", "shape": "dot", "size": 11, "title": "blackbeardpirates (14 members)"}, {"font": {"color": "white"}, "group": 2, "id": "worldgovernment", "label": "worldgovernment", "shape": "dot", "size": 21, "title": "worldgovernment (27 members)"}, {"font": {"color": "white"}, "group": 3, "id": "fouremperors", "label": "fouremperors", "shape": "dot", "size": 5, "title": "fouremperors (7 members)"}, {"font": {"color": "white"}, "group": 3, "id": "clanofd.", "label": "clanofd.", "shape": "dot", "size": 10, "title": "clanofd. (13 members)"}, {"font": {"color": "white"}, "group": 3, "id": "dadanfamily", "label": "dadanfamily", "shape": "dot", "size": 4, "title": "dadanfamily (6 members)"}, {"font": {"color": "white"}, "group": 0, "id": "kouzukifamily", "label": "kouzukifamily", "shape": "dot", "size": 20, "title": "kouzukifamily (25 members)"}, {"font": {"color": "white"}, "group": 0, "id": "nineredscabbards", "label": "nineredscabbards", "shape": "dot", "size": 7, "title": "nineredscabbards (9 members)"}, {"font": {"color": "white"}, "group": 0, "id": "mokomodukedom", "label": "mokomodukedom", "shape": "dot", "size": 13, "title": "mokomodukedom (17 members)"}, {"font": {"color": "white"}, "group": 0, "id": "rogerpirates", "label": "rogerpirates", "shape": "dot", "size": 24, "title": "rogerpirates (31 members)"}, {"font": {"color": "white"}, "group": 0, "id": "whitebeardpirates", "label": "whitebeardpirates", "shape": "dot", "size": 34, "title": "whitebeardpirates (43 members)"}, {"font": {"color": "white"}, "group": 0, "id": "kurozumifamily", "label": "kurozumifamily", "shape": "dot", "size": 9, "title": "kurozumifamily (12 members)"}, {"font": {"color": "white"}, "group": 0, "id": "beastspirates", "label": "beastspirates", "shape": "dot", "size": 52, "title": "beastspirates (65 members)"}, {"font": {"color": "white"}, "group": 0, "id": "tama", "label": "tama", "shape": "dot", "size": 3, "title": "tama (4 members)"}, {"font": {"color": "white"}, "group": 0, "id": "guardians", "label": "guardians", "shape": "dot", "size": 4, "title": "guardians (5 members)"}, {"font": {"color": "white"}, "group": 0, "id": "", "label": "", "shape": "dot", "size": 4, "title": " (6 members)"}, {"font": {"color": "white"}, "group": 0, "id": "heartpirates", "label": "heartpirates", "shape": "dot", "size": 7, "title": "heartpirates (9 members)"}, {"font": {"color": "white"}, "group": 0, "id": "inuarashimusketeersquad", "label": "inuarashimusketeersquad", "shape": "dot", "size": 4, "title": "inuarashimusketeersquad (5 members)"}, {"font": {"color": "white"}, "group": 0, "id": "kidpirates", "label": "kidpirates", "shape": "dot", "size": 16, "title": "kidpirates (21 members)"}, {"font": {"color": "white"}, "group": 0, "id": "kurozumitama", "label": "kurozumitama", "shape": "dot", "size": 1, "title": "kurozumitama (2 members)"}, {"font": {"color": "white"}, "group": 0, "id": "orochioniwabanshu", "label": "orochioniwabanshu", "shape": "dot", "size": 8, "title": "orochioniwabanshu (11 members)"}, {"font": {"color": "white"}, "group": 4, "id": "newspiderscafe", "label": "newspiderscafe", "shape": "dot", "size": 5, "title": "newspiderscafe (7 members)"}, {"font": {"color": "white"}, "group": 2, "id": "donquixotepirates", "label": "donquixotepirates", "shape": "dot", "size": 17, "title": "donquixotepirates (22 members)"}, {"font": {"color": "white"}, "group": 2, "id": "marines", "label": "marines", "shape": "dot", "size": 77, "title": "marines (97 members)"}, {"font": {"color": "white"}, "group": 7, "id": "revolutionaryarmy", "label": "revolutionaryarmy", "shape": "dot", "size": 16, "title": "revolutionaryarmy (20 members)"}, {"font": {"color": "white"}, "group": 7, "id": "freedomfighters", "label": "freedomfighters", "shape": "dot", "size": 3, "title": "freedomfighters (4 members)"}, {"font": {"color": "white"}, "group": 7, "id": "kamabakkakingdom", "label": "kamabakkakingdom", "shape": "dot", "size": 2, "title": "kamabakkakingdom (3 members)"}, {"font": {"color": "white"}, "group": 7, "id": "newkamaland", "label": "newkamaland", "shape": "dot", "size": 4, "title": "newkamaland (6 members)"}, {"font": {"color": "white"}, "group": 2, "id": "giantwarriorpirates", "label": "giantwarriorpirates", "shape": "dot", "size": 7, "title": "giantwarriorpirates (9 members)"}, {"font": {"color": "white"}, "group": 2, "id": "g-5", "label": "g-5", "shape": "dot", "size": 4, "title": "g-5 (6 members)"}, {"font": {"color": "white"}, "group": 2, "id": "barrelspirates", "label": "barrelspirates", "shape": "dot", "size": 1, "title": "barrelspirates (2 members)"}, {"font": {"color": "white"}, "group": 2, "id": "g-2", "label": "g-2", "shape": "dot", "size": 3, "title": "g-2 (4 members)"}, {"font": {"color": "white"}, "group": 2, "id": "marine153rdbranch", "label": "marine153rdbranch", "shape": "dot", "size": 2, "title": "marine153rdbranch (3 members)"}, {"font": {"color": "white"}, "group": 2, "id": "giantsquad", "label": "giantsquad", "shape": "dot", "size": 1, "title": "giantsquad (2 members)"}, {"font": {"color": "white"}, "group": 2, "id": "loguetownmarinebase", "label": "loguetownmarinebase", "shape": "dot", "size": 2, "title": "loguetownmarinebase (3 members)"}, {"font": {"color": "white"}, "group": 1, "id": "groggymonsters", "label": "groggymonsters", "shape": "dot", "size": 2, "title": "groggymonsters (3 members)"}, {"font": {"color": "white"}, "group": 9, "id": "cp0", "label": "cp0", "shape": "dot", "size": 11, "title": "cp0 (14 members)"}, {"font": {"color": "white"}, "group": 9, "id": "cp9", "label": "cp9", "shape": "dot", "size": 11, "title": "cp9 (14 members)"}, {"font": {"color": "white"}, "group": 9, "id": "galley-lacompany", "label": "galley-lacompany", "shape": "dot", "size": 8, "title": "galley-lacompany (11 members)"}, {"font": {"color": "white"}, "group": 8, "id": "bigmompirates", "label": "bigmompirates", "shape": "dot", "size": 76, "title": "bigmompirates (96 members)"}, {"font": {"color": "white"}, "group": 8, "id": "charlottefamily", "label": "charlottefamily", "shape": "dot", "size": 70, "title": "charlottefamily (88 members)"}, {"font": {"color": "white"}, "group": 3, "id": "rockspirates", "label": "rockspirates", "shape": "dot", "size": 8, "title": "rockspirates (11 members)"}, {"font": {"color": "white"}, "group": 8, "id": "cacaoisland", "label": "cacaoisland", "shape": "dot", "size": 2, "title": "cacaoisland (3 members)"}, {"font": {"color": "white"}, "group": 14, "id": "caesarclown", "label": "caesarclown", "shape": "dot", "size": 8, "title": "caesarclown (11 members)"}, {"font": {"color": "white"}, "group": 14, "id": "centaurpatrolunit", "label": "centaurpatrolunit", "shape": "dot", "size": 2, "title": "centaurpatrolunit (3 members)"}, {"font": {"color": "white"}, "group": 6, "id": "mads", "label": "mads", "shape": "dot", "size": 5, "title": "mads (7 members)"}, {"font": {"color": "white"}, "group": 6, "id": "germakingdom", "label": "germakingdom", "shape": "dot", "size": 8, "title": "germakingdom (10 members)"}, {"font": {"color": "white"}, "group": 6, "id": "neomads", "label": "neomads", "shape": "dot", "size": 1, "title": "neomads (2 members)"}, {"font": {"color": "white"}, "group": 6, "id": "vinsmokefamily", "label": "vinsmokefamily", "shape": "dot", "size": 5, "title": "vinsmokefamily (7 members)"}, {"font": {"color": "white"}, "group": 6, "id": "germa66", "label": "germa66", "shape": "dot", "size": 4, "title": "germa66 (6 members)"}, {"font": {"color": "white"}, "group": 8, "id": "firetankpirates", "label": "firetankpirates", "shape": "dot", "size": 4, "title": "firetankpirates (6 members)"}, {"font": {"color": "white"}, "group": 0, "id": "spadepirates", "label": "spadepirates", "shape": "dot", "size": 16, "title": "spadepirates (20 members)"}, {"font": {"color": "white"}, "group": 18, "id": "thrillerbarkpirates", "label": "thrillerbarkpirates", "shape": "dot", "size": 17, "title": "thrillerbarkpirates (22 members)"}, {"font": {"color": "white"}, "group": 12, "id": "god\u0027sknights", "label": "god\u0027sknights", "shape": "dot", "size": 4, "title": "god\u0027sknights (6 members)"}, {"font": {"color": "white"}, "group": 12, "id": "worldnobles", "label": "worldnobles", "shape": "dot", "size": 7, "title": "worldnobles (9 members)"}, {"font": {"color": "white"}, "group": 15, "id": "rollingpirates", "label": "rollingpirates", "shape": "dot", "size": 1, "title": "rollingpirates (2 members)"}, {"font": {"color": "white"}, "group": 15, "id": "thrillerbarkvictim\u0027sassociation", "label": "thrillerbarkvictim\u0027sassociation", "shape": "dot", "size": 2, "title": "thrillerbarkvictim\u0027sassociation (3 members)"}, {"font": {"color": "white"}, "group": 16, "id": "blikingpirates", "label": "blikingpirates", "shape": "dot", "size": 4, "title": "blikingpirates (5 members)"}, {"font": {"color": "white"}, "group": 16, "id": "drumkingdom", "label": "drumkingdom", "shape": "dot", "size": 4, "title": "drumkingdom (5 members)"}, {"font": {"color": "white"}, "group": 3, "id": "arabastakingdom", "label": "arabastakingdom", "shape": "dot", "size": 9, "title": "arabastakingdom (12 members)"}, {"font": {"color": "white"}, "group": 17, "id": "ukkarihot-springisland", "label": "ukkarihot-springisland", "shape": "dot", "size": 4, "title": "ukkarihot-springisland (5 members)"}, {"font": {"color": "white"}, "group": 17, "id": "gedatsu", "label": "gedatsu", "shape": "dot", "size": 1, "title": "gedatsu (2 members)"}, {"font": {"color": "white"}, "group": 3, "id": "sand-sandclan", "label": "sand-sandclan", "shape": "dot", "size": 4, "title": "sand-sandclan (6 members)"}, {"font": {"color": "white"}, "group": 3, "id": "rebelarmy", "label": "rebelarmy", "shape": "dot", "size": 4, "title": "rebelarmy (6 members)"}, {"font": {"color": "white"}, "group": 12, "id": "fiveelders", "label": "fiveelders", "shape": "dot", "size": 4, "title": "fiveelders (6 members)"}, {"font": {"color": "white"}, "group": 9, "id": "frankyfamily", "label": "frankyfamily", "shape": "dot", "size": 8, "title": "frankyfamily (10 members)"}, {"font": {"color": "white"}, "group": 19, "id": "neutral", "label": "neutral", "shape": "dot", "size": 4, "title": "neutral (5 members)"}, {"font": {"color": "white"}, "group": 2, "id": "elbaph", "label": "elbaph", "shape": "dot", "size": 1, "title": "elbaph (2 members)"}]);
+                  edges = new vis.DataSet([{"color": {"opacity": 0.5}, "from": "ideopirates", "title": "4 members shared: ideo, bluegilly, jet, abdullah", "to": "strawhatgrandfleet", "width": 4}, {"color": {"opacity": 0.5}, "from": "strawhatgrandfleet", "title": "4 members shared: baby5babyfive, qingjiao, sai, boo", "to": "happonavy", "width": 4}, {"color": {"opacity": 0.5}, "from": "strawhatgrandfleet", "title": "4 members shared: baby5babyfive, qingjiao, sai, boo", "to": "chinjaofamily", "width": 4}, {"color": {"opacity": 0.5}, "from": "strawhatgrandfleet", "title": "2 members shared: bartolomeo, gambia", "to": "bartoclub", "width": 2}, {"color": {"opacity": 0.5}, "from": "strawhatgrandfleet", "title": "3 members shared: cotton, inhel, baxcon", "to": "tontattakingdomscoutingunit", "width": 3}, {"color": {"opacity": 0.5}, "from": "strawhatgrandfleet", "title": "8 members shared: bian, cotton, mouji,mousey, rampo, inhel, bomba, baxcon, cub", "to": "tontattapirates", "width": 8}, {"color": {"opacity": 0.5}, "from": "strawhatgrandfleet", "title": "9 members shared: bian, bobomba, leo, rampo, mouji,mousey, bomba, flapper, cub, nubon", "to": "tontattakingdom", "width": 9}, {"color": {"opacity": 0.5}, "from": "strawhatgrandfleet", "title": "10 members shared: brook, jinbe, monkeyd.luffy, nami, sanji, nicorobin, roronoazoro, tonytonychopper, franky, usopp", "to": "strawhatpirates", "width": 10}, {"color": {"opacity": 0.5}, "from": "strawhatgrandfleet", "title": "10 members shared: brook, jinbe, monkeyd.luffy, nami, sanji, nicorobin, roronoazoro, tonytonychopper, franky, usopp", "to": "ninja-pirate-mink-samuraialliance", "width": 10}, {"color": {"opacity": 0.5}, "from": "strawhatgrandfleet", "title": "2 members shared: cavendish, suleiman", "to": "beautifulpirates", "width": 2}, {"color": {"opacity": 0.5}, "from": "strawhatgrandfleet", "title": "2 members shared: olombus, columbus", "to": "yontamariagrandfleet", "width": 2}, {"color": {"opacity": 0.5}, "from": "strawhatgrandfleet", "title": "2 members shared: nubon, flapper", "to": "tontacorps", "width": 2}, {"color": {"opacity": 0.5}, "from": "strawhatgrandfleet", "title": "3 members shared: hajrudin, gerd, stansen", "to": "newgiantwarriorpirates", "width": 3}, {"color": {"opacity": 0.5}, "from": "strawhatgrandfleet", "title": "2 members shared: rodo, stansen", "to": "buggy\u0027sdelivery", "width": 4}, {"color": {"opacity": 0.5}, "from": "strawhatgrandfleet", "title": "2 members shared: monkeyd.luffy, jinbe", "to": "impeldown", "width": 2}, {"color": {"opacity": 0.5}, "from": "strawhatgrandfleet", "title": "2 members shared: monkeyd.luffy, sanji", "to": "baratie", "width": 2}, {"color": {"opacity": 0.5}, "from": "strawhatgrandfleet", "title": "2 members shared: nicorobin, tonytonychopper", "to": "foxypirates", "width": 2}, {"color": {"opacity": 0.5}, "from": "shandia", "title": "2 members shared: nola, aisa", "to": "wagomuland", "width": 2}, {"color": {"opacity": 0.5}, "from": "shandia", "title": "4 members shared: braham, kamakiri, wyper, genbougenbo", "to": "god\u0027sguards", "width": 4}, {"color": {"opacity": 0.5}, "from": "sunpirates", "title": "2 members shared: aladdin, jinbe", "to": "ryugukingdom", "width": 2}, {"color": {"opacity": 0.5}, "from": "sunpirates", "title": "6 members shared: hatchan, kaneshiro, arlong, kuroobi, choo, pisaro", "to": "arlongpirates", "width": 6}, {"color": {"opacity": 0.5}, "from": "sunpirates", "title": "2 members shared: arlong, jinbe", "to": "impeldown", "width": 2}, {"color": {"opacity": 0.5}, "from": "sunpirates", "title": "3 members shared: macro, gyaro, tansui", "to": "macropirates", "width": 3}, {"color": {"opacity": 0.5}, "from": "ryugukingdom", "title": "3 members shared: otohime, shirahoshi, neptune", "to": "neptunefamily", "width": 3}, {"color": {"opacity": 0.5}, "from": "fakestrawhatcrew", "title": "2 members shared: lipdoughty, albion", "to": "hisowncrew", "width": 2}, {"color": {"opacity": 0.5}, "from": "fakestrawhatcrew", "title": "3 members shared: momoo, coribou, caribou", "to": "cariboupirates", "width": 3}, {"color": {"opacity": 0.5}, "from": "crossguild", "title": "5 members shared: mohji, richierichy, cabaji, alvida, mr.3/galdino", "to": "buggy\u0027sdelivery", "width": 5}, {"color": {"opacity": 0.5}, "from": "crossguild", "title": "6 members shared: mohji, buggy, richierichy, cabaji, alvida, mr.3/galdino", "to": "buggyandalvidaalliance", "width": 6}, {"color": {"opacity": 0.5}, "from": "crossguild", "title": "5 members shared: mohji, buggy, richierichy, cabaji, alvida", "to": "buggypirates", "width": 5}, {"color": {"opacity": 0.5}, "from": "crossguild", "title": "3 members shared: buggy, draculemihawkdiegomihawk, crocodile", "to": "sevenwarlordsofthesea", "width": 3}, {"color": {"opacity": 0.5}, "from": "crossguild", "title": "2 members shared: buggy, crocodile", "to": "impeldown", "width": 2}, {"color": {"opacity": 0.5}, "from": "crossguild", "title": "3 members shared: dazbonez, mr.3/galdino, crocodile", "to": "baroqueworks", "width": 3}, {"color": {"opacity": 0.5}, "from": "buggy\u0027sdelivery", "title": "5 members shared: mohji, richierichy, cabaji, alvida, mr.3/galdino", "to": "buggyandalvidaalliance", "width": 5}, {"color": {"opacity": 0.5}, "from": "buggy\u0027sdelivery", "title": "4 members shared: mohji, richierichy, cabaji, alvida", "to": "buggypirates", "width": 4}, {"color": {"opacity": 0.5}, "from": "buggy\u0027sdelivery", "title": "3 members shared: hajrudin, gerd, stansen", "to": "newgiantwarriorpirates", "width": 3}, {"color": {"opacity": 0.5}, "from": "buggyandalvidaalliance", "title": "1 members shared: buggy", "to": "buggypirates", "width": 5}, {"color": {"opacity": 0.5}, "from": "kuja", "title": "9 members shared: cosmos, shakuyaku, daisy, aphelandra, rindo, marguerite,margaret, sweetpea, ran, bluefan", "to": "kujapirates", "width": 9}, {"color": {"opacity": 0.5}, "from": "impeldown", "title": "5 members shared: catarinadevon, shiryushiliew, avalopizarro, sanjuanwolf, vascoshot", "to": "blackbeardpirates", "width": 5}, {"color": {"opacity": 0.5}, "from": "impeldown", "title": "5 members shared: donquixotedoflamingo, minokoala, minozebra, minotaur, minorhinoceros", "to": "worldgovernment", "width": 7}, {"color": {"opacity": 0.5}, "from": "impeldown", "title": "2 members shared: buggy, monkeyd.luffy", "to": "fouremperors", "width": 2}, {"color": {"opacity": 0.5}, "from": "impeldown", "title": "1 members shared: donquixotedoflamingo", "to": "sevenwarlordsofthesea", "width": 4}, {"color": {"opacity": 0.5}, "from": "impeldown", "title": "2 members shared: monkeyd.luffy, jinbe", "to": "strawhatpirates", "width": 2}, {"color": {"opacity": 0.5}, "from": "impeldown", "title": "2 members shared: monkeyd.luffy, jinbe", "to": "ninja-pirate-mink-samuraialliance", "width": 2}, {"color": {"opacity": 0.5}, "from": "impeldown", "title": "2 members shared: monkeyd.luffy, portgasd.ace", "to": "clanofd.", "width": 2}, {"color": {"opacity": 0.5}, "from": "impeldown", "title": "2 members shared: monkeyd.luffy, portgasd.ace", "to": "dadanfamily", "width": 2}, {"color": {"opacity": 0.5}, "from": "kouzukifamily", "title": "9 members shared: kin\u0027emon, catvipernekomamushi, denjiro, ashuradoji, kikunojo, kurozumikanjuro, kawamatsu, dogstormdogupineinuarashi, raizo", "to": "nineredscabbards", "width": 9}, {"color": {"opacity": 0.5}, "from": "kouzukifamily", "title": "15 members shared: kin\u0027emon, izo, kozukihiyori, catvipernekomamushi, kozukisukiyaki, denjiro, shinobu, ashuradoji, kikunojo, kozukimomonosuke, kurozumikanjuro, kakunoshin, kawamatsu, dogstormdogupineinuarashi, raizo", "to": "ninja-pirate-mink-samuraialliance", "width": 15}, {"color": {"opacity": 0.5}, "from": "kouzukifamily", "title": "2 members shared: dogstormdogupineinuarashi, catvipernekomamushi", "to": "mokomodukedom", "width": 2}, {"color": {"opacity": 0.5}, "from": "kouzukifamily", "title": "4 members shared: kozukitoki, dogstormdogupineinuarashi, catvipernekomamushi, kozukioden", "to": "rogerpirates", "width": 4}, {"color": {"opacity": 0.5}, "from": "kouzukifamily", "title": "1 members shared: izo", "to": "whitebeardpirates", "width": 5}, {"color": {"opacity": 0.5}, "from": "kouzukifamily", "title": "2 members shared: fukurokuju, kurozumikanjuro", "to": "kurozumifamily", "width": 3}, {"color": {"opacity": 0.5}, "from": "kouzukifamily", "title": "1 members shared: kurozumikanjuro", "to": "beastspirates", "width": 2}, {"color": {"opacity": 0.5}, "from": "nineredscabbards", "title": "3 members shared: kin\u0027emon, dogstormdogupineinuarashi, catvipernekomamushi", "to": "ninja-pirate-mink-samuraialliance", "width": 9}, {"color": {"opacity": 0.5}, "from": "nineredscabbards", "title": "2 members shared: dogstormdogupineinuarashi, catvipernekomamushi", "to": "mokomodukedom", "width": 2}, {"color": {"opacity": 0.5}, "from": "nineredscabbards", "title": "2 members shared: dogstormdogupineinuarashi, catvipernekomamushi", "to": "rogerpirates", "width": 2}, {"color": {"opacity": 0.5}, "from": "nineredscabbards", "title": "2 members shared: dogstormdogupineinuarashi, catvipernekomamushi", "to": "whitebeardpirates", "width": 2}, {"color": {"opacity": 0.5}, "from": "nineredscabbards", "title": "1 members shared: kurozumikanjuro", "to": "kurozumifamily", "width": 2}, {"color": {"opacity": 0.5}, "from": "ninja-pirate-mink-samuraialliance", "title": "2 members shared: kurozumikanjuro, yamato", "to": "beastspirates", "width": 9}, {"color": {"opacity": 0.5}, "from": "ninja-pirate-mink-samuraialliance", "title": "3 members shared: babanuki, gazelle-mangazelleman, daifugo", "to": "tama", "width": 3}, {"color": {"opacity": 0.5}, "from": "ninja-pirate-mink-samuraialliance", "title": "14 members shared: bariete, pedro, shishilian, catvipernekomamushi, milky, roddy, tristan, yomo, bbbb, miyagi, giovanni, wanda, dogstormdogupineinuarashi, carrot", "to": "mokomodukedom", "width": 14}, {"color": {"opacity": 0.5}, "from": "ninja-pirate-mink-samuraialliance", "title": "5 members shared: pedro, milky, catvipernekomamushi, roddy, bbbb", "to": "guardians", "width": 5}, {"color": {"opacity": 0.5}, "from": "ninja-pirate-mink-samuraialliance", "title": "2 members shared: pedro, bbbb", "to": "", "width": 2}, {"color": {"opacity": 0.5}, "from": "ninja-pirate-mink-samuraialliance", "title": "9 members shared: shachi, penguin, uni, hakugan, jeanbart, ikkaku, bepo, trafalgard.waterlaw, clione", "to": "heartpirates", "width": 9}, {"color": {"opacity": 0.5}, "from": "ninja-pirate-mink-samuraialliance", "title": "10 members shared: brook, jinbe, monkeyd.luffy, nami, sanji, nicorobin, roronoazoro, tonytonychopper, franky, usopp", "to": "strawhatpirates", "width": 10}, {"color": {"opacity": 0.5}, "from": "ninja-pirate-mink-samuraialliance", "title": "5 members shared: shishilian, giovanni, wanda, dogstormdogupineinuarashi, carrot", "to": "inuarashimusketeersquad", "width": 5}, {"color": {"opacity": 0.5}, "from": "ninja-pirate-mink-samuraialliance", "title": "2 members shared: dogstormdogupineinuarashi, catvipernekomamushi", "to": "rogerpirates", "width": 2}, {"color": {"opacity": 0.5}, "from": "ninja-pirate-mink-samuraialliance", "title": "2 members shared: marco, izo", "to": "whitebeardpirates", "width": 4}, {"color": {"opacity": 0.5}, "from": "ninja-pirate-mink-samuraialliance", "title": "3 members shared: kurozumikanjuro, denjiro, kurozumitama", "to": "kurozumifamily", "width": 3}, {"color": {"opacity": 0.5}, "from": "ninja-pirate-mink-samuraialliance", "title": "3 members shared: heat, wire, killer", "to": "kidpirates", "width": 3}, {"color": {"opacity": 0.5}, "from": "ninja-pirate-mink-samuraialliance", "title": "1 members shared: trafalgard.waterlaw", "to": "sevenwarlordsofthesea", "width": 2}, {"color": {"opacity": 0.5}, "from": "ninja-pirate-mink-samuraialliance", "title": "2 members shared: komachiyo, speed", "to": "kurozumitama", "width": 2}, {"color": {"opacity": 0.5}, "from": "ninja-pirate-mink-samuraialliance", "title": "2 members shared: monkeyd.luffy, trafalgard.waterlaw", "to": "clanofd.", "width": 2}, {"color": {"opacity": 0.5}, "from": "ninja-pirate-mink-samuraialliance", "title": "2 members shared: monkeyd.luffy, sanji", "to": "baratie", "width": 2}, {"color": {"opacity": 0.5}, "from": "ninja-pirate-mink-samuraialliance", "title": "2 members shared: nicorobin, tonytonychopper", "to": "foxypirates", "width": 2}, {"color": {"opacity": 0.5}, "from": "beastspirates", "title": "4 members shared: babanuki, poker, gazelle-mangazelleman, daifugo", "to": "tama", "width": 4}, {"color": {"opacity": 0.5}, "from": "beastspirates", "title": "11 members shared: chome, fujin, raijin, daikoku, sarutobi, yazaemon, fukurokuju, jigoku-benten, kazekage, bishamon, hanzo", "to": "orochioniwabanshu", "width": 11}, {"color": {"opacity": 0.5}, "from": "beastspirates", "title": "2 members shared: fukurokuju, kurozumikanjuro", "to": "kurozumifamily", "width": 9}, {"color": {"opacity": 0.5}, "from": "newspiderscafe", "title": "7 members shared: mikita, lassoo, gem, babe, zala, marianne, drophy", "to": "baroqueworks", "width": 7}, {"color": {"opacity": 0.5}, "from": "baroqueworks", "title": "3 members shared: nicorobin, nefeltarivivi, karoo", "to": "strawhatpirates", "width": 3}, {"color": {"opacity": 0.5}, "from": "happonavy", "title": "1 members shared: qingjiao", "to": "chinjaofamily", "width": 4}, {"color": {"opacity": 0.5}, "from": "donquixotepirates", "title": "2 members shared: donquixotedoflamingo, donquixoterocinante", "to": "worldgovernment", "width": 2}, {"color": {"opacity": 0.5}, "from": "donquixotepirates", "title": "1 members shared: trafalgard.waterlaw", "to": "sevenwarlordsofthesea", "width": 2}, {"color": {"opacity": 0.5}, "from": "donquixotepirates", "title": "1 members shared: vergo", "to": "marines", "width": 2}, {"color": {"opacity": 0.5}, "from": "mokomodukedom", "title": "5 members shared: pedro, milky, catvipernekomamushi, roddy, bbbb", "to": "guardians", "width": 5}, {"color": {"opacity": 0.5}, "from": "mokomodukedom", "title": "2 members shared: pedro, bbbb", "to": "", "width": 2}, {"color": {"opacity": 0.5}, "from": "mokomodukedom", "title": "5 members shared: shishilian, giovanni, wanda, dogstormdogupineinuarashi, carrot", "to": "inuarashimusketeersquad", "width": 5}, {"color": {"opacity": 0.5}, "from": "mokomodukedom", "title": "2 members shared: dogstormdogupineinuarashi, catvipernekomamushi", "to": "rogerpirates", "width": 2}, {"color": {"opacity": 0.5}, "from": "mokomodukedom", "title": "2 members shared: dogstormdogupineinuarashi, catvipernekomamushi", "to": "whitebeardpirates", "width": 2}, {"color": {"opacity": 0.5}, "from": "revolutionaryarmy", "title": "4 members shared: bartholomewkuma, ginny, monkeyd.dragon, emporioivankov", "to": "freedomfighters", "width": 4}, {"color": {"opacity": 0.5}, "from": "revolutionaryarmy", "title": "1 members shared: inazuma", "to": "kamabakkakingdom", "width": 2}, {"color": {"opacity": 0.5}, "from": "revolutionaryarmy", "title": "1 members shared: inazuma", "to": "newkamaland", "width": 2}, {"color": {"opacity": 0.5}, "from": "sevenwarlordsofthesea", "title": "2 members shared: buggy, marshalld.teech", "to": "fouremperors", "width": 2}, {"color": {"opacity": 0.5}, "from": "sevenwarlordsofthesea", "title": "2 members shared: marshalld.teech, trafalgard.waterlaw", "to": "clanofd.", "width": 2}, {"color": {"opacity": 0.5}, "from": "worldgovernment", "title": "1 members shared: baskerville", "to": "worldgovernment", "width": 3}, {"color": {"opacity": 0.5}, "from": "worldgovernment", "title": "1 members shared: kong", "to": "marines", "width": 2}, {"color": {"opacity": 0.5}, "from": "worldgovernment", "title": "2 members shared: oimo, kashii", "to": "giantwarriorpirates", "width": 2}, {"color": {"opacity": 0.5}, "from": "tontattakingdomscoutingunit", "title": "3 members shared: cotton, inhel, baxcon", "to": "tontattapirates", "width": 3}, {"color": {"opacity": 0.5}, "from": "tontattapirates", "title": "5 members shared: bian, rampo, bomba, mouji,mousey, cub", "to": "tontattakingdom", "width": 5}, {"color": {"opacity": 0.5}, "from": "marines", "title": "6 members shared: jero, smoker,chaser, bazeko, gal, yarisugi, pike", "to": "g-5", "width": 6}, {"color": {"opacity": 0.5}, "from": "marines", "title": "1 members shared: x.drake", "to": "barrelspirates", "width": 2}, {"color": {"opacity": 0.5}, "from": "marines", "title": "4 members shared: kyuji, kadar, koda, komillecomille", "to": "g-2", "width": 4}, {"color": {"opacity": 0.5}, "from": "marines", "title": "2 members shared: ripper, koby,coby", "to": "marine153rdbranch", "width": 2}, {"color": {"opacity": 0.5}, "from": "marines", "title": "2 members shared: kujaku, princegrus", "to": "", "width": 2}, {"color": {"opacity": 0.5}, "from": "marines", "title": "2 members shared: lacroix, lonz", "to": "giantsquad", "width": 2}, {"color": {"opacity": 0.5}, "from": "marines", "title": "3 members shared: tashigi, smoker,chaser, mashikaku", "to": "loguetownmarinebase", "width": 3}, {"color": {"opacity": 0.5}, "from": "marines", "title": "1 members shared: monkeyd.garp", "to": "clanofd.", "width": 2}, {"color": {"opacity": 0.5}, "from": "marines", "title": "1 members shared: pacifista", "to": "marines", "width": 6}, {"color": {"opacity": 0.5}, "from": "guardians", "title": "2 members shared: pedro, bbbb", "to": "", "width": 2}, {"color": {"opacity": 0.5}, "from": "newkamaland", "title": "2 members shared: inazuma, emporioivankov", "to": "kamabakkakingdom", "width": 2}, {"color": {"opacity": 0.5}, "from": "tontattakingdom", "title": "2 members shared: nubon, flapper", "to": "tontacorps", "width": 2}, {"color": {"opacity": 0.5}, "from": "foxypirates", "title": "3 members shared: pickles, hamburg, bigbun", "to": "groggymonsters", "width": 3}, {"color": {"opacity": 0.5}, "from": "foxypirates", "title": "2 members shared: nicorobin, tonytonychopper", "to": "strawhatpirates", "width": 2}, {"color": {"opacity": 0.5}, "from": "orochioniwabanshu", "title": "1 members shared: fukurokuju", "to": "kurozumifamily", "width": 7}, {"color": {"opacity": 0.5}, "from": "cp0", "title": "10 members shared: funkfreed, kaku, jabra, kumadori, fukur\u00f4, blueno, spandam, hattori, roblucci, kalifa", "to": "cp9", "width": 10}, {"color": {"opacity": 0.5}, "from": "cp0", "title": "3 members shared: roblucci, kaku, kalifa", "to": "galley-lacompany", "width": 3}, {"color": {"opacity": 0.5}, "from": "cp9", "title": "3 members shared: roblucci, kaku, kalifa", "to": "galley-lacompany", "width": 3}, {"color": {"opacity": 0.5}, "from": "bigmompirates", "title": "4 members shared: charlottelinlin, decuplets, charlottedolceanddrag\u00e9e, kingbaum", "to": "charlottefamily", "width": 93}, {"color": {"opacity": 0.5}, "from": "bigmompirates", "title": "2 members shared: decuplets, charlottedolceanddrag\u00e9e", "to": "bigmompirates", "width": 7}, {"color": {"opacity": 0.5}, "from": "bigmompirates", "title": "4 members shared: charlottelinlin, prometheus, napoleon, streusen", "to": "rockspirates", "width": 4}, {"color": {"opacity": 0.5}, "from": "bigmompirates", "title": "2 members shared: rabianrabiyan, nitro", "to": "cacaoisland", "width": 2}, {"color": {"opacity": 0.5}, "from": "strawhatpirates", "title": "2 members shared: monkeyd.luffy, nefeltarivivi", "to": "clanofd.", "width": 2}, {"color": {"opacity": 0.5}, "from": "strawhatpirates", "title": "2 members shared: monkeyd.luffy, sanji", "to": "baratie", "width": 2}, {"color": {"opacity": 0.5}, "from": "caesarclown", "title": "3 members shared: kirintauros, hyoutauros, browndrosbeardriguezchadroshigelyges", "to": "centaurpatrolunit", "width": 3}, {"color": {"opacity": 0.5}, "from": "rockspirates", "title": "3 members shared: charlottelinlin, kaido, edwardnewgate", "to": "fouremperors", "width": 3}, {"color": {"opacity": 0.5}, "from": "mads", "title": "2 members shared: vinsmokejudge, caesarclown", "to": "germakingdom", "width": 2}, {"color": {"opacity": 0.5}, "from": "mads", "title": "2 members shared: vinsmokejudge, caesarclown", "to": "neomads", "width": 2}, {"color": {"opacity": 0.5}, "from": "fouremperors", "title": "2 members shared: monkeyd.luffy, marshalld.teech", "to": "clanofd.", "width": 2}, {"color": {"opacity": 0.5}, "from": "rogerpirates", "title": "1 members shared: kozukitoki", "to": "whitebeardpirates", "width": 4}, {"color": {"opacity": 0.5}, "from": "germakingdom", "title": "2 members shared: vinsmokejudge, caesarclown", "to": "neomads", "width": 2}, {"color": {"opacity": 0.5}, "from": "germakingdom", "title": "7 members shared: vinsmokereiju, vinsmokeyonji, vinsmokeichiji, vinsmokesora, sanji, vinsmokeniji, vinsmokejudge", "to": "vinsmokefamily", "width": 7}, {"color": {"opacity": 0.5}, "from": "germakingdom", "title": "5 members shared: vinsmokejudge, vinsmokeyonji, vinsmokeichiji, vinsmokeniji, vinsmokereiju", "to": "germa66", "width": 5}, {"color": {"opacity": 0.5}, "from": "firetankpirates", "title": "2 members shared: caponepez, charlottechiffon", "to": "charlottefamily", "width": 2}, {"color": {"opacity": 0.5}, "from": "charlottefamily", "title": "2 members shared: decuplets, charlottedolceanddrag\u00e9e", "to": "charlottefamily", "width": 7}, {"color": {"opacity": 0.5}, "from": "whitebeardpirates", "title": "1 members shared: portgasd.ace", "to": "spadepirates", "width": 4}, {"color": {"opacity": 0.5}, "from": "thrillerbarkpirates", "title": "1 members shared: gyoro,nin,bao", "to": "thrillerbarkpirates", "width": 3}, {"color": {"opacity": 0.5}, "from": "god\u0027sknights", "title": "4 members shared: st.sommers, figarlandshamrock, saintfigarlandgarling, st.killingham", "to": "worldnobles", "width": 4}, {"color": {"opacity": 0.5}, "from": "rollingpirates", "title": "2 members shared: charlottelola, riskybrothers", "to": "thrillerbarkvictim\u0027sassociation", "width": 2}, {"color": {"opacity": 0.5}, "from": "blikingpirates", "title": "2 members shared: robson, wapol", "to": "drumkingdom", "width": 5}, {"color": {"opacity": 0.5}, "from": "clanofd.", "title": "2 members shared: monkeyd.luffy, portgasd.ace", "to": "dadanfamily", "width": 2}, {"color": {"opacity": 0.5}, "from": "clanofd.", "title": "3 members shared: nefeltarid.lily, nefeltaricobra, nefeltarivivi", "to": "arabastakingdom", "width": 3}, {"color": {"opacity": 0.5}, "from": "ukkarihot-springisland", "title": "2 members shared: forestboss, earthboss", "to": "gedatsu", "width": 2}, {"color": {"opacity": 0.5}, "from": "sand-sandclan", "title": "4 members shared: koza, eric, kebi, okame", "to": "rebelarmy", "width": 4}, {"color": {"opacity": 0.5}, "from": "sand-sandclan", "title": "2 members shared: nefeltarivivi, koza", "to": "arabastakingdom", "width": 2}, {"color": {"opacity": 0.5}, "from": "worldnobles", "title": "6 members shared: st.shepherdjupeter, st.marcusmars, st.jaygarciasaturn, st.ethanbaronv.nusjuro, saintfigarlandgarling, st.topmanwarcury", "to": "fiveelders", "width": 6}, {"color": {"opacity": 0.5}, "from": "frankyfamily", "title": "3 members shared: zambai, tamagon, kiev", "to": "galley-lacompany", "width": 3}, {"color": {"opacity": 0.5}, "from": "neutral", "title": "1 members shared: ichika,nika,sanka,yonka,yonkatwo", "to": "neutral", "width": 10}, {"color": {"opacity": 0.5}, "from": "giantwarriorpirates", "title": "2 members shared: jarul, jorul", "to": "elbaph", "width": 2}, {"color": {"opacity": 0.5}, "from": "arabastakingdom", "title": "1 members shared: kickingclawforce", "to": "arabastakingdom", "width": 6}, {"color": {"opacity": 0.5}, "from": "vinsmokefamily", "title": "5 members shared: vinsmokejudge, vinsmokeyonji, vinsmokeichiji, vinsmokeniji, vinsmokereiju", "to": "germa66", "width": 5}]);
+
+                  nodeColors = {};
+                  allNodes = nodes.get({ returnType: "Object" });
+                  for (nodeId in allNodes) {
+                    nodeColors[nodeId] = allNodes[nodeId].color;
+                  }
+                  allEdges = edges.get({ returnType: "Object" });
+                  // adding nodes and edges to the graph
+                  data = {nodes: nodes, edges: edges};
+
+                  var options = {
+    "configure": {
+        "enabled": false
+    },
+    "edges": {
+        "color": {
+            "inherit": true
+        },
+        "smooth": {
+            "enabled": true,
+            "type": "dynamic"
+        }
+    },
+    "interaction": {
+        "dragNodes": true,
+        "hideEdgesOnDrag": false,
+        "hideNodesOnDrag": false
+    },
+    "physics": {
+        "enabled": true,
+        "forceAtlas2Based": {
+            "avoidOverlap": 0,
+            "centralGravity": 0.01,
+            "damping": 0.4,
+            "gravitationalConstant": -50,
+            "springConstant": 0.08,
+            "springLength": 100
+        },
+        "solver": "forceAtlas2Based",
+        "stabilization": {
+            "enabled": true,
+            "fit": true,
+            "iterations": 1000,
+            "onlyDynamicEdges": false,
+            "updateInterval": 50
+        }
+    }
+};
+
+                  
+
+
+                  
+
+                  network = new vis.Network(container, data, options);
+
+                  
+
+                  
+
+                  
+
+
+                  
+                      network.on("stabilizationProgress", function(params) {
+                          document.getElementById('loadingBar').removeAttribute("style");
+                          var maxWidth = 496;
+                          var minWidth = 20;
+                          var widthFactor = params.iterations/params.total;
+                          var width = Math.max(minWidth,maxWidth * widthFactor);
+                          document.getElementById('bar').style.width = width + 'px';
+                          document.getElementById('text').innerHTML = Math.round(widthFactor*100) + '%';
+                      });
+                      network.once("stabilizationIterationsDone", function() {
+                          document.getElementById('text').innerHTML = '100%';
+                          document.getElementById('bar').style.width = '496px';
+                          document.getElementById('loadingBar').style.opacity = 0;
+                          // really clean the dom element
+                          setTimeout(function () {document.getElementById('loadingBar').style.display = 'none';}, 500);
+                      });
+                  
+
+                  return network;
+
+              }
+              drawGraph();
+        </script>
+    </body>
+</html>
