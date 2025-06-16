@@ -18,3 +18,4 @@ networkx
 matplotlib
 mpld3
 pydot
+seaborn
