@@ -18,4 +18,5 @@ networkx
 matplotlib
 mpld3
 pydot
+itertools
 seaborn

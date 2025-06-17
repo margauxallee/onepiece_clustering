@@ -94,18 +94,23 @@ target = 'strawhatpirates'
 
 for (values, xlabel, title), base_color in zip(datasets, pastel_colors):
     labels = values.index.tolist()
-    colors = ['darkred' if lbl == target else base_color for lbl in labels]
+    colors = ["#F74444" if lbl == target else base_color for lbl in labels]
 
     plt.figure(figsize=(10, 6))
     bars = plt.barh(labels, values,
                     color=colors, edgecolor=colors,
                     linewidth=10, joinstyle='round', height=0.6)
-    plt.bar_label(bars, label_type='edge', padding=-15,
+    plt.bar_label(bars, label_type='edge', padding=-25,
                   fontsize=10, color='white', weight='bold')
-
-    plt.xlabel(xlabel)
-    plt.ylabel('Affiliation')
-    plt.title(title)
+    plt.xlabel(xlabel, color= 'white')
+    plt.ylabel('Affiliation', color='white')
+    plt.title(title, color ='white')
     plt.gca().invert_yaxis()
+    plt.gca().set_facecolor("#323232")
+    plt.gcf().patch.set_facecolor("#323232")
+    plt.gca().tick_params(axis='y', colors='white')
+    plt.gca().tick_params(axis='x', colors='white')
+    for spine in plt.gca().spines.values():
+        spine.set_edgecolor("#323232")
     plt.tight_layout()
     plt.show()

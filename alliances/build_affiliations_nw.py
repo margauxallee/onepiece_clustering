@@ -5,10 +5,11 @@ import numpy as np
 from terminal_style import sprint, spinner
 from pyvis.network import Network
 from typing import Dict, List
+from collections import defaultdict
 from networkx.algorithms.community import greedy_modularity_communities
 
 
-spinner("Generating affiliations network...", color="blue", bold=True)
+spinner("Generating affiliations network...", color="pink", bold=True)
 
 df_alliances = pd.read_csv('data/dataframes/df_final_onepiece.csv')
 df_alliances = df_alliances[['affiliations', 'name']]
@@ -20,10 +21,7 @@ df_alliances = (df_alliances
 
 # --- Collect all affiliations per character ---
 # Initialize mappings using defaultdict for automatic list initialization
-from collections import defaultdict
-
 names_to_affiliations: Dict[str, List[str]] = defaultdict(list)  # ex: {'Luffy': ['Straw Hat Pirates', 'Revolutionary Army']}
-affiliations_to_names: Dict[str, List[str]] = defaultdict(list)  #ex: {'Straw Hat Pirates': ['Luffy', 'Zoro', ...]}
 temp_affiliations_to_names: Dict[str, List[str]] = defaultdict(list)  # Temporary mapping for affiliations to names
 # Loop through each row in the df
 for index, record in df_alliances[['name', 'affiliations']].iterrows():
@@ -49,7 +47,6 @@ for name, affs in names_to_affiliations.items():
 
 
 # --- Add weighted edges ---
-
 shared_chars = {}  # Keep track of shared characters between affiliations
 for name, affs in names_to_affiliations.items():
     if len(affs) > 1:
