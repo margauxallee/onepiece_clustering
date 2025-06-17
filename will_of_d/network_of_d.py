@@ -1,20 +1,20 @@
 import pandas as pd
 import networkx as nx
-import matplotlib.pyplot as plt
 from itertools import combinations
-import seaborn as sns
-import numpy as np
+from pyvis.network import Network
+from terminal_style import sprint, spinner
 
 
 """
 This script shows how the D. characters are connected through their affiliations:
-It build a network where any two characters are joined if they share an affiliation.
+In the networ, two characters are joined if they share an affiliation.
 For every pair of D. characters, the program find and print the shortest chain of characters linking them.
-You can see the resulting network just by running the code, with D. characters and intermediates highlighted in different colors.
 """
 
+spinner("Generating network of D....", color="pink", bold=True)
+
 # Load and clean data
-df_characters = pd.read_csv("data_extraction/df_final_onepiece.csv")
+df_characters = pd.read_csv("data/dataframes/df_final_onepiece.csv")
 
 # Drop rows with missing names or affiliations
 df_characters = df_characters.dropna(subset=["name", "affiliations"]).copy()
@@ -29,16 +29,30 @@ df_exploded["affiliations"] = df_exploded["affiliations"].str.strip()
 df_exploded = df_exploded[df_exploded["affiliations"] != "clanofd."]
 
 
-# Build graph
+# Build graph of characters connected by shared affiliations
 G = nx.Graph()
+shared_affiliations = {}  # Keep track of shared affiliations between characters
 
-for _, row in df_exploded.iterrows():
-    char = row["name"]
-    aff = row["affiliations"]
-    G.add_node(char, type="character", has_D=row["has_D"])
-    G.add_node(aff, type="affiliation")
-    G.add_edge(char, aff)
+# First add all characters as nodes
+for name, group in df_exploded.groupby("name"):
+    G.add_node(name, type="character", has_D=group["has_D"].iloc[0])
 
+# Then connect characters who share affiliations
+for aff, chars in df_exploded.groupby("affiliations")["name"]:
+    # Get all pairs of characters with this affiliation
+    chars = chars.unique()
+    for c1, c2 in combinations(chars, 2):
+        if G.has_edge(c1, c2):
+            # If edge exists, append this affiliation to the list
+            shared_affiliations[(c1, c2)].append(aff)
+        else:
+            # Create new edge with this affiliation
+            G.add_edge(c1, c2)
+            shared_affiliations[(c1, c2)] = [aff]
+
+# Add shared affiliations to edge tooltips
+for (c1, c2), affs in shared_affiliations.items():
+    G[c1][c2]['title'] = f"Shared affiliations: {', '.join(affs)}"
 
 key_df = df_exploded[df_exploded["has_D"] == 1.0]
 key_characters = key_df["name"].unique().tolist()
@@ -62,120 +76,42 @@ subG = G.subgraph(nodes_to_include).copy()
 
 # Visualization
 
-sns.set_theme(style="white")
-plt.rcParams["font.family"] = "DejaVu Sans"
-plt.rcParams["axes.edgecolor"] = "white"
-plt.rcParams["axes.linewidth"] = 0.1
-
-palette = sns.color_palette("Set2")
-
-color_key = palette[0]       
-color_inter = palette[1]     
-color_aff = palette[2]      
-
-plt.figure(figsize=(22, 16))
-
-# Use optimized spring layout for best visualization
-pos = nx.spring_layout(
-    subG,
-    k=3,           # Increase spacing between nodes
-    iterations=50, # More iterations for better convergence
-    seed=42       # For reproducible layout
-)
-
-# Categorize nodes
 key_nodes = [n for n, d in subG.nodes(data=True) if d.get("has_D") == 1.0]
-intermediate_nodes = [n for n, d in subG.nodes(data=True)
-                      if d.get("type") == "character" and d.get("has_D") != 1.0]
-aff_nodes = [n for n, d in subG.nodes(data=True) if d.get("type") == "affiliation"]
+intermediate_nodes = [n for n, d in subG.nodes(data=True) if not d.get("has_D") == 1.0]
 
-# Draw nodes with soft edges
-nx.draw_networkx_nodes(subG, pos, nodelist=key_nodes, node_color=color_key,
-                       node_size=1200, edgecolors="gray", linewidths=1.2, label="Key Characters")
-nx.draw_networkx_nodes(subG, pos, nodelist=intermediate_nodes, node_color=color_inter,
-                       node_size=600, edgecolors="gray", linewidths=1, label="Intermediate Characters")
-nx.draw_networkx_nodes(subG, pos, nodelist=aff_nodes, node_color=color_aff,
-                       node_size=400, edgecolors="gray", linewidths=1, label="Affiliations")
+net = Network(height='750px', width='100%', bgcolor='#222222', font_color='white')
+net.from_nx(subG)
+net.heading = "One Piece Network — D. Characters : shortest path to link each other"
 
-# Categorize edges
-key_to_key = [(u, v) for (u, v) in subG.edges() if u in key_nodes and v in key_nodes]
-key_to_aff = [(u, v) for (u, v) in subG.edges() if 
-              (u in key_nodes and v in aff_nodes) or (v in key_nodes and u in aff_nodes)]
-other_edges = [(u, v) for (u, v) in subG.edges() if 
-               (u, v) not in key_to_key and (u, v) not in key_to_aff]
+for node in net.nodes:
+    node_data = subG.nodes[node['id']]
+    if node_data.get('has_D') == 1.0:
+        # D. characters
+        node['color'] = '#ff9999'  
+        node['size'] = 30  # Bigger size for D. characters
+        node['title'] = f"D. Character: {node['id']}"
+    else:
+        # Other characters
+        node['color'] = '#99ccff'  
+        node['size'] = 15
+        node['title'] = f"Character: {node['id']}"
 
-# Draw edges with different styles based on connection type
-nx.draw_networkx_edges(subG, pos, 
-                      edgelist=key_to_key,
-                      edge_color='darkred',
-                      alpha=0.4,
-                      width=2,
-                      connectionstyle="arc3,rad=0.3")
+for edge in net.edges:
+    source_has_d = subG.nodes[edge['from']].get('has_D') == 1.0
+    target_has_d = subG.nodes[edge['to']].get('has_D') == 1.0
+    
+    if source_has_d and target_has_d:
+        edge['color'] = {'color': '#ff6666', 'opacity': 0.8}  #  D.-D. connections
+        edge['width'] = 3
+    elif source_has_d or target_has_d:
+        edge['color'] = {'color': "#66ccff", 'opacity': 0.4}  # D.-normal connections
+        edge['width'] = 2
+    else:
+        edge['color'] = {'color': '#666666', 'opacity': 0.3}  # normal-normal connections
+        edge['width'] = 1
 
-nx.draw_networkx_edges(subG, pos, 
-                      edgelist=key_to_aff,
-                      edge_color='darkblue',
-                      alpha=0.3,
-                      width=1.5,
-                      connectionstyle="arc3,rad=0.2")
 
-nx.draw_networkx_edges(subG, pos, 
-                      edgelist=other_edges,
-                      edge_color='gray',
-                      alpha=0.15,
-                      width=1,
-                      connectionstyle="arc3,rad=0.1")
+net.force_atlas_2based(gravity=-50, central_gravity=0.01, spring_length=150)
+net.show("will_of_d/results/network_of_d.html", notebook=False)
 
-# Add labels with improved visibility
-char_labels = {n: n for n in key_nodes + intermediate_nodes}
-nx.draw_networkx_labels(subG, pos, labels=char_labels, 
-                       font_size=10, 
-                       font_weight="bold",
-                       bbox=dict(facecolor='white', 
-                               alpha=0.7, 
-                               edgecolor='none', 
-                               pad=0.5))
-
-aff_labels = {n: n for n in aff_nodes}
-nx.draw_networkx_labels(subG, pos, labels=aff_labels, 
-                       font_size=6, 
-                       font_color="dimgray",
-                       bbox=dict(facecolor='white', 
-                               alpha=0.5, 
-                               edgecolor='none', 
-                               pad=0.3))
-
-plt.title("One Piece Network — D. Characters and their connections", 
-          fontsize=20, fontweight="bold", pad=30)
-
-# Create legend elements
-node_legend_elements = [
-    plt.scatter([], [], c=[color_key], s=1200, label='Key Characters', 
-               edgecolors='gray', linewidths=1.2),
-    plt.scatter([], [], c=[color_inter], s=600, label='Intermediate Characters',
-               edgecolors='gray', linewidths=1),
-    plt.scatter([], [], c=[color_aff], s=400, label='Affiliations',
-               edgecolors='gray', linewidths=1)
-]
-
-# Create custom legend for edge types
-edge_legend_elements = [
-    plt.Line2D([0], [0], color='darkred', linestyle='-', lw=2,
-               label='D. Character Connections'),
-    plt.Line2D([0], [0], color='darkblue', linestyle='-', lw=1.5,
-               label='D. Character-Affiliation'),
-    plt.Line2D([0], [0], color='gray', linestyle='-', lw=1,
-               label='Other Connections')
-]
-
-# Combine all legend elements
-plt.legend(handles=node_legend_elements + edge_legend_elements,
-          loc="upper right", 
-          fontsize=11, 
-          frameon=True, 
-          fancybox=True, 
-          edgecolor="lightgray")
-
-plt.axis("off")
-plt.tight_layout()
-plt.show()
+sprint("Network generated and saved as network_of_d.html", color="green", bold= True)
