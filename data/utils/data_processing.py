@@ -79,7 +79,6 @@ def clean_text_column(series: pd.Series,
 def main():
     # Load and primary clean
     df_filtered = pd.read_csv("data/dataframes/raw_crawled_data.csv")
-    df_filtered['has_D'] = df_filtered['name'].str.contains(r'D\. ', na=False).astype(int)
     df_filtered['name'] = clean_text_column(df_filtered['name'], split_on=True, remove_nan=True)
     
     df_filtered['key'] = clean_text_column(
@@ -94,12 +93,15 @@ def main():
     df_filtered['apparition'] = df_filtered['apparition'].apply(extract_chapter)
 
     # Clean demographic columns
-    demo_cols = ['affiliations', 'occupations', 'origin', 'residence']
+    demo_cols = ['affiliations','occupations', 'origin', 'residence']
     for col in demo_cols:
         df_filtered[col] = clean_text_column(df_filtered[col], lower=True,
                                      replace_commas=True,
                                      remove_spaces=True,
                                      remove_nan=True)
+        
+    # D characters
+    df_filtered['has_D'] = df_filtered['affiliations'].str.contains('clanofd', na=False).astype(int)
 
     # Drop unused
     df_filtered.drop(columns=['age','birthday'], errors='ignore', inplace=True)

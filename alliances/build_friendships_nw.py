@@ -74,7 +74,7 @@ for node in G.nodes():
 
 # Add transparency to edges
 for u, v in G.edges():
-    G[u][v]['color'] = {'opacity': 0.4}
+    G[u][v]['color'] = {'opacity': 0.2}
 
 # --- PyVis visualization ---
 net = Network(height='750px', width='100%', bgcolor='#222222', font_color='white')
