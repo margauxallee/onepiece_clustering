@@ -3,7 +3,7 @@
 ![alt text](image.png)
 
 ## Overview
-The One Piece world is amazing. But it's also huge : with over 1500 characters, it can become overwhelming. This project builds networks based on shared crews, organizations, or even alliances to find patterns and make the world easier to understand, helping fans to better visualize the One Piece world.
+The One Piece world is huge : with over 1500 characters, it can become overwhelming. This project builds networks based on shared crews, organizations, or even alliances to find patterns and make the world easier to understand, helping fans to better visualize the One Piece world.
 
 
 ## Getting Started
